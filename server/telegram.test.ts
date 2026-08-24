@@ -39,7 +39,7 @@ describe("Telegram webhook security", () => {
     expect(verifyWebhookSecret(undefined, "webhook-secret")).toBe(false);
   });
 
-  it("handles /start by sending a Mini App button", async () => {
+  it("handles /start and /run by sending a Mini App button", async () => {
     const previousToken = process.env.TELEGRAM_BOT_TOKEN;
     const previousUrl = process.env.TELEGRAM_WEB_APP_URL;
     process.env.TELEGRAM_BOT_TOKEN = botToken;
@@ -48,8 +48,10 @@ describe("Telegram webhook security", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(handleTelegramUpdate({ update_id: 1, message: { text: "/start", chat: { id: 99 } } })).resolves.toEqual({ handled: true });
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/sendMessage"), expect.objectContaining({ method: "POST" }));
-    const sent = JSON.parse(fetchMock.mock.calls[0][1].body);
+    await expect(handleTelegramUpdate({ update_id: 2, message: { text: "/run@Gamequesthub_bot", chat: { id: 99 } } })).resolves.toEqual({ handled: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const sent = JSON.parse(fetchMock.mock.calls[1][1].body);
+    expect(sent.text).toContain("Genesis Run");
     expect(sent.reply_markup.inline_keyboard[0][0].web_app.url).toBe("https://gamequest.example");
 
     process.env.TELEGRAM_BOT_TOKEN = previousToken;

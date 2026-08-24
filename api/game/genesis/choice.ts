@@ -1,6 +1,6 @@
 import type { ServerResponse } from "node:http";
-import { authenticateGameRequest, gameErrorStatus, sendJson, type ApiRequest } from "../../../../server/game/http";
-import { submitGenesisChoice } from "../../../../server/game/service";
+import { authenticateGameRequest, gameErrorStatus, sendJson, type ApiRequest } from "../../_lib/game/http";
+import { submitGenesisChoice } from "../../_lib/game/service";
 
 export default async function handler(request: ApiRequest, response: ServerResponse) {
   if (request.method !== "POST") return sendJson(response, 405, { error: "Method not allowed" });

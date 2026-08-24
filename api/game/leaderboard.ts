@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { gameErrorStatus, sendJson } from "../../server/game/http";
-import { getLeaderboard } from "../../server/game/service";
+import { gameErrorStatus, sendJson } from "../_lib/game/http";
+import { getLeaderboard } from "../_lib/game/service";
 
 export default async function handler(request: IncomingMessage, response: ServerResponse) {
   if (request.method !== "GET") return sendJson(response, 405, { error: "Method not allowed" });

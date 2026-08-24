@@ -26,7 +26,7 @@ Masuk ke chat **@BotFather**, kirim `/mybots`, pilih **GameQuest Hub**, lalu lak
 | Menu Button / Configure Mini App | `https://gamequest-hub-tma.vercel.app` |
 | Privacy Policy | Tambahkan URL kebijakan privasi Anda sebelum peluncuran publik. |
 
-Untuk command, buka **Edit Commands** dan daftarkan dua baris berikut. Aktifkan command ini terutama untuk **Direct Messages**.
+Gunakan hanya dua command berikut untuk **Default Scope** pada Direct Messages. Hapus command yang sama dari scope atau bahasa lain agar Telegram tidak menampilkan `/run` berulang.
 
 ```text
 start - Mulai petualanganmu dan buka quest pertama di GameQuest Hub.

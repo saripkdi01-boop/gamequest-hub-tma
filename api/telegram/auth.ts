@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { upsertTelegramPlayer } from "../../server/db";
-import { TelegramValidationError, verifyTelegramInitData } from "../../server/telegram";
-import { getGameDashboard } from "../../server/game/service";
+import { upsertGameQuestPlayer } from "../_lib/supabase";
+import { TelegramValidationError, verifyTelegramInitData } from "../_lib/telegram";
+import { getGameDashboard } from "../_lib/game/service";
 
 type ApiRequest = IncomingMessage & { body?: unknown };
 
@@ -27,7 +27,7 @@ export default async function handler(request: ApiRequest, response: ServerRespo
     const body = await readBody(request);
     const initData = typeof body.initData === "string" ? body.initData : "";
     const user = verifyTelegramInitData(initData);
-    const player = await upsertTelegramPlayer(user);
+    const player = await upsertGameQuestPlayer(user);
     return sendJson(response, 200, { player, dashboard: await getGameDashboard(player) });
   } catch (error) {
     const status = error instanceof TelegramValidationError ? 401 : 503;
