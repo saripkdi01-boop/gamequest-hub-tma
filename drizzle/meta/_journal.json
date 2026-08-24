@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787554451219,
+      "tag": "0000_hard_northstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787555035020,
+      "tag": "0001_high_marvel_zombies",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787555839477,
+      "tag": "0002_odd_the_enforcers",
+      "breakpoints": true
+    }
+  ]
 }
