@@ -39,16 +39,14 @@ async function sendCommandReply(chatId: number, command: "start" | "run") {
   if (!botToken) throw new Error("Telegram bot token is not configured");
 
   const text = command === "run"
-    ? "Your Genesis Run is ready. Open GameQuest Hub to continue your active route."
-    : "Welcome to GameQuest Hub. Your first quest is waiting—open the Mini App to begin.";
-  const webAppUrl = process.env.TELEGRAM_WEB_APP_URL || "https://gamequest-hub-tma.vercel.app";
+    ? "Your Genesis Run is ready. Tap the Menu button below to continue your active route."
+    : "Welcome to GameQuest Hub. Tap the Menu button below to begin your first quest.";
   const telegramResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       chat_id: chatId,
       text,
-      reply_markup: { inline_keyboard: [[{ text: "Open GameQuest Hub", web_app: { url: webAppUrl } }]] },
     }),
   });
   const payload = await telegramResponse.json() as { ok?: boolean; description?: string };

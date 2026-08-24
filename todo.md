@@ -48,3 +48,4 @@
 - [ ] Memverifikasi respons `/start` dan `/run` serta akses Mini App pada bot production.
 - [ ] Melakukan uji end-to-end `/start` dan `/run` di bot production serta mencatat bukti tombol Mini App pada balasan bot.
 - [ ] Menelusuri update `/run` production terbaru yang tidak menghasilkan balasan bot meskipun webhook telah dipulihkan.
+- [ ] Mengaudit ulang konfigurasi delivery Telegram dan deployment aktif setelah webhook mandiri tidak membalas command pengguna.
