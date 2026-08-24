@@ -19,4 +19,4 @@
 - [x] Menambahkan rahasia server Telegram dan Supabase ke environment variables Vercel untuk mengaktifkan fungsi produksi.
 - [x] Menetapkan URL Mini App dan webhook Telegram ke domain produksi Vercel, lalu memverifikasi endpoint kesehatan produksi.
 - [x] Membuat repository GitHub privat dan menyiapkan deployment Vercel dengan secrets aman.
-- [ ] Memverifikasi asal URL Mini App yang dikonfigurasi pada fungsi Vercel production.
+- [x] Memverifikasi asal URL Mini App yang dikonfigurasi pada fungsi Vercel production.
