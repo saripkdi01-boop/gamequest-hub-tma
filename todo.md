@@ -20,3 +20,6 @@
 - [x] Menetapkan URL Mini App dan webhook Telegram ke domain produksi Vercel, lalu memverifikasi endpoint kesehatan produksi.
 - [x] Membuat repository GitHub privat dan menyiapkan deployment Vercel dengan secrets aman.
 - [x] Memverifikasi asal URL Mini App yang dikonfigurasi pada fungsi Vercel production.
+- [x] Menganalisis kesiapan repository untuk loop game nyata, progres pemain, dan monetisasi iklan.
+- [x] Meneliti dokumentasi Monego serta merancang integrasi iklan yang aman untuk Telegram Mini App.
+- [x] Menyusun prompt DeepSeek implementatif untuk pengembangan game dan monetisasi berikutnya.
