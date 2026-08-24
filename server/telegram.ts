@@ -91,10 +91,16 @@ export async function sendTelegramMessage(chatId: number, text: string, webAppUr
 
 export async function handleTelegramUpdate(update: TelegramUpdate): Promise<{ handled: boolean }> {
   const text = update.message?.text?.trim();
-  if (!text || !update.message) return { handled: false };
+  if (!text || !update.message) {
+    console.info("[Telegram] update ignored: no text message");
+    return { handled: false };
+  }
 
   const command = text.split(/\s+/, 1)[0]?.toLowerCase().split("@", 1)[0];
-  if (command !== "/start" && command !== "/run") return { handled: false };
+  if (command !== "/start" && command !== "/run") {
+    console.info("[Telegram] update ignored: unsupported command");
+    return { handled: false };
+  }
 
   await sendTelegramMessage(
     update.message.chat.id,
@@ -102,5 +108,6 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<{ ha
       ? "Your Genesis Run is ready. Open GameQuest Hub to continue your active route."
       : "Welcome to GameQuest Hub. Your first quest is waiting—open the Mini App to begin.",
   );
+  console.info(`[Telegram] reply sent for ${command}`);
   return { handled: true };
 }

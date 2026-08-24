@@ -43,6 +43,8 @@
 - [x] Menguji game mobile, build, dokumentasi, serta memperbarui deployment produksi.
 - [x] Mendorong Explore Route terbaru ke GitHub dan memverifikasi deployment Vercel production.
 - [x] Memperbaiki fallback routing SPA Vercel agar tautan langsung ke Explore Route tidak menghasilkan 404.
-- [ ] Mendiagnosis mengapa bot tidak merespons perintah `/run` pada chat Telegram.
-- [ ] Memperbaiki webhook atau handler command Telegram dan menghapus duplikasi command yang tidak diperlukan.
+- [x] Mendiagnosis mengapa bot tidak merespons perintah `/run` pada chat Telegram.
+- [x] Memperbaiki webhook atau handler command Telegram dan menghapus duplikasi command yang tidak diperlukan.
 - [ ] Memverifikasi respons `/start` dan `/run` serta akses Mini App pada bot production.
+- [ ] Melakukan uji end-to-end `/start` dan `/run` di bot production serta mencatat bukti tombol Mini App pada balasan bot.
+- [ ] Menelusuri update `/run` production terbaru yang tidak menghasilkan balasan bot meskipun webhook telah dipulihkan.

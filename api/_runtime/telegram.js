@@ -48,11 +48,18 @@ function commandFrom(text) {
 }
 async function handleTelegramUpdate(update) {
   const text = update.message?.text;
-  if (!text || !update.message) return { handled: false };
+  if (!text || !update.message) {
+    console.info("[Telegram] update ignored: no text message");
+    return { handled: false };
+  }
   const command = commandFrom(text);
-  if (!command) return { handled: false };
+  if (!command) {
+    console.info("[Telegram] update ignored: unsupported command");
+    return { handled: false };
+  }
   const message = command === "run" ? "Your Genesis Run is ready. Open GameQuest Hub to continue your active route." : "Welcome to GameQuest Hub. Your first quest is waiting\u2014open the Mini App to begin.";
   await sendTelegramMessage(update.message.chat.id, message);
+  console.info(`[Telegram] reply sent for /${command}`);
   return { handled: true };
 }
 export {
