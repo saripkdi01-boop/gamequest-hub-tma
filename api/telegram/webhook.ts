@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { handleTelegramUpdate, verifyWebhookSecret, type TelegramUpdate } from "../_lib/telegram";
+import { handleTelegramUpdate, verifyWebhookSecret } from "../_runtime/telegram.js";
+import type { TelegramUpdate } from "../_lib/telegram";
 
 type ApiRequest = IncomingMessage & { body?: unknown };
 

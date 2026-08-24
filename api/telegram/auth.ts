@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { upsertGameQuestPlayer } from "../_lib/supabase";
-import { TelegramValidationError, verifyTelegramInitData } from "../_lib/telegram";
-import { getGameDashboard } from "../_lib/game/service";
+import { upsertGameQuestPlayer } from "../_runtime/supabase.js";
+import { TelegramValidationError, verifyTelegramInitData } from "../_runtime/telegram.js";
+import { getGameDashboard } from "../_runtime/game-service.js";
 
 type ApiRequest = IncomingMessage & { body?: unknown };
 

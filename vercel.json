@@ -3,6 +3,11 @@
   "framework": "vite",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "api/_runtime/**"
+    }
+  },
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
