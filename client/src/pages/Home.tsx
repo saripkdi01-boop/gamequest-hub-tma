@@ -31,7 +31,7 @@ export default function Home() {
 
   useEffect(() => {
     const button = webApp?.MainButton;
-    const openQuest = () => setLocation("/quest");
+    const openQuest = () => setLocation("/explore");
     if (!button) return;
     button.setText(state.genesisRun.status === "active" ? "LANJUTKAN GENESIS RUN" : "MULAI GENESIS RUN");
     button.show();
@@ -85,7 +85,7 @@ export default function Home() {
           <div className="flex items-end justify-between"><div><p className="font-mono text-[10px] uppercase tracking-[.15em] text-[#a3b58f]">Quest board</p><h2 className="mt-1 font-display text-[28px] tracking-[-.04em] text-[#fbf8ed]">Your next move</h2></div><button onClick={() => setLocation("/leaderboard")} className="pb-1 font-mono text-[9px] uppercase tracking-[.12em] text-[#d7fb70]">Ranks</button></div>
           <article className="quest-card mt-4 rounded-[24px] border border-white/[.1] p-4">
             <div className="flex gap-4"><div className="grid h-16 w-16 shrink-0 place-items-center rounded-[19px] border border-[#d7fb70]/25 text-[#d7fb70]"><MapPinned size={29} /></div><div className="min-w-0 flex-1"><span className="rounded-full bg-[#d7fb70]/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[.1em] text-[#d7fb70]">{state.genesisRun.status}</span><h3 className="mt-2 font-display text-[22px] leading-none tracking-[-.035em] text-[#fbf8ed]">{state.genesisRun.title}</h3><p className="mt-2 text-[12px] leading-relaxed text-[#9dabb8]">{state.genesisRun.description}</p></div></div>
-            <div className="mt-4 flex items-center justify-between border-t border-white/[.08] pt-3.5"><div className="flex items-center gap-2 font-mono text-[10px] text-[#a7b69d]"><ShieldCheck size={15} className="text-[#d7fb70]" />+{state.genesisRun.rewardXp} XP · +{state.genesisRun.rewardRelics} relics</div><button onClick={() => setLocation("/quest")} className="grid h-9 w-9 place-items-center rounded-full bg-[#d7fb70] text-[#16200f] transition-transform active:scale-95" aria-label="Buka Genesis Run"><ChevronRight size={18} strokeWidth={2.7} /></button></div>
+            <div className="mt-4 flex items-center justify-between border-t border-white/[.08] pt-3.5"><div className="flex items-center gap-2 font-mono text-[10px] text-[#a7b69d]"><ShieldCheck size={15} className="text-[#d7fb70]" />+{state.genesisRun.rewardXp} XP · +{state.genesisRun.rewardRelics} relics</div><button onClick={() => setLocation("/explore")} className="grid h-9 w-9 place-items-center rounded-full bg-[#d7fb70] text-[#16200f] transition-transform active:scale-95" aria-label="Explore Genesis Run"><ChevronRight size={18} strokeWidth={2.7} /></button></div>
           </article>
         </section>
 

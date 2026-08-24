@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { lazy, Suspense } from "react";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -10,12 +11,19 @@ import QuestResult from "./pages/QuestResult";
 import Leaderboard from "./pages/Leaderboard";
 import RewardBonus from "./pages/RewardBonus";
 
+const ExploreRoute = lazy(() => import("./pages/ExploreRoute"));
+
+function ExploreRouteRoute() {
+  return <Suspense fallback={<div className="game-shell grid min-h-[100dvh] place-items-center font-mono text-xs uppercase tracking-[.16em] text-[#d7fb70]">Loading exploration route…</div>}><ExploreRoute /></Suspense>;
+}
+
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/quest"} component={QuestRun} />
+      <Route path={"/explore"} component={ExploreRouteRoute} />
       <Route path={"/result"} component={QuestResult} />
       <Route path={"/leaderboard"} component={Leaderboard} />
       <Route path={"/bonus"} component={RewardBonus} />

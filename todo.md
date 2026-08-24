@@ -32,3 +32,12 @@
 - [x] Menambahkan pengujian game/reward, dokumentasi operasional, dan validasi build mobile.
 - [x] Memverifikasi replay completion Genesis Run tetap idempoten tanpa menggandakan reward.
 - [x] Membatasi Genesis Run selesai satu kali per pemain per hari UTC.
+- [x] Menyusun panduan aktivasi dan pengoperasian GameQuest Hub melalui BotFather, Vercel, Supabase, dan Telegram.
+- [x] Menentukan desain mode eksplorasi visual Genesis Run yang sesuai untuk Telegram mobile.
+- [x] Menyiapkan aset visual game, context files, dan arsitektur Babylon yang lifecycle-safe.
+- [x] Mengimplementasikan scene eksplorasi playable serta menghubungkannya ke progres quest server-side.
+- [x] Mengoptimalkan pemuatan Babylon agar dashboard utama tetap ringan di jaringan Telegram mobile.
+- [x] Menambahkan navigasi kembali native Telegram dan haptic fokus gate pada mode eksplorasi.
+- [ ] Menyempurnakan reward, haptic, safe area, dan alur game khusus Telegram.
+- [x] Menguji game mobile, build, dokumentasi, serta memperbarui deployment produksi.
+- [ ] Mendorong Explore Route terbaru ke GitHub dan memverifikasi deployment Vercel production.

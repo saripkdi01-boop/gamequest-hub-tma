@@ -33,7 +33,7 @@ Salin `.env.example` hanya untuk dokumentasi lokal; jangan pernah commit berkas 
 
 ## Gameplay Genesis Run
 
-Genesis Run adalah vertical slice permainan yang aktif bagi pemain Telegram tervalidasi. Server membuat satu run aktif dengan seed tersimpan, menjalankan tiga checkpoint pilihan, dan menyelesaikan run hanya setelah urutan checkpoint valid. Reward `+25 XP` dan `+3 relics` dicatat ke `player_reward_ledger` melalui fungsi Supabase atomik; pengulangan request completion hanya mengembalikan hasil yang sudah selesai tanpa memberi reward kedua.
+Genesis Run adalah vertical slice permainan yang aktif bagi pemain Telegram tervalidasi. Pemain memasuki **Explore Route**, sebuah scene Babylon isometrik yang memperlihatkan tiga gate, Pathfinder, crystal, dan route atlas sebelum membuat pilihan checkpoint. Server membuat satu run aktif dengan seed tersimpan, menjalankan tiga checkpoint pilihan, dan menyelesaikan run hanya setelah urutan checkpoint valid. Reward `+25 XP` dan `+3 relics` dicatat ke `player_reward_ledger` melalui fungsi Supabase atomik; pengulangan request completion hanya mengembalikan hasil yang sudah selesai tanpa memberi reward kedua.
 
 | Route | Fungsi |
 | --- | --- |
@@ -42,6 +42,8 @@ Genesis Run adalah vertical slice permainan yang aktif bagi pemain Telegram terv
 | `POST /api/game/genesis/choice` | Memvalidasi satu pilihan checkpoint dan menyelesaikan run bila checkpoint ketiga selesai. |
 | `GET /api/game/leaderboard` | Mengembalikan peringkat Season Alpha berdasarkan XP. |
 | `POST /api/game/ads/intent` | Membuat intent bonus iklan yang dibatasi daily cap dan cooldown. |
+
+Mode eksplorasi di-load secara lazy sehingga bundle Babylon hanya diunduh ketika pemain memilih Genesis Run; dashboard awal tetap lebih ringan untuk jaringan Telegram mobile.
 
 ## Rewarded Ads Monetag
 
