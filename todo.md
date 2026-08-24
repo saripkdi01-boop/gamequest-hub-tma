@@ -41,3 +41,4 @@
 - [ ] Menyempurnakan reward, haptic, safe area, dan alur game khusus Telegram.
 - [x] Menguji game mobile, build, dokumentasi, serta memperbarui deployment produksi.
 - [ ] Mendorong Explore Route terbaru ke GitHub dan memverifikasi deployment Vercel production.
+- [ ] Memperbaiki fallback routing SPA Vercel agar tautan langsung ke Explore Route tidak menghasilkan 404.
