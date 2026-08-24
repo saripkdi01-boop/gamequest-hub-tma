@@ -16,4 +16,6 @@
 - [x] Memverifikasi tampilan, endpoint, pengujian, dan build project secara lokal.
 - [x] Menguji endpoint autentikasi Telegram dengan initData valid dan tidak valid.
 - [x] Menguji endpoint webhook Telegram dengan webhook secret benar dan salah.
+- [x] Menambahkan rahasia server Telegram dan Supabase ke environment variables Vercel untuk mengaktifkan fungsi produksi.
+- [ ] Menetapkan URL Mini App dan webhook Telegram ke domain produksi Vercel, lalu memverifikasi endpoint kesehatan produksi.
 - [ ] Membuat repository GitHub privat dan menyiapkan deployment Vercel dengan secrets aman.

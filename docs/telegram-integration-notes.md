@@ -10,3 +10,7 @@ Endpoint `POST /api/telegram/webhook` akan memeriksa header `X-Telegram-Bot-Api-
 
 - Telegram Mini Apps: https://core.telegram.org/bots/webapps
 - Telegram Bot API — setWebhook: https://core.telegram.org/bots/api#setwebhook
+
+## Domain Produksi
+
+URL Mini App dan target webhook produksi GameQuest Hub adalah `https://gamequest-hub-tma.vercel.app`.
