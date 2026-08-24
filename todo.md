@@ -1,9 +1,9 @@
 # Project TODO
 
-- [ ] Menetapkan arsitektur aman untuk Telegram Web App, webhook, dan deployment Vercel.
+- [x] Menetapkan arsitektur aman untuk Telegram Web App, webhook, dan deployment Vercel.
 - [x] Membuat desain GameQuest Hub mobile-first yang responsif untuk viewport Telegram.
 - [x] Memuat dan menginisialisasi Telegram Web Apps SDK, termasuk tema, safe area, dan tombol utama.
-- [ ] Memverifikasi ulang UI Home dan integrasi Telegram setelah kompilasi bersih.
+- [x] Memverifikasi ulang UI Home dan integrasi Telegram setelah kompilasi bersih.
 - [x] Memastikan fallback aman ketika aplikasi dibuka di luar Telegram.
 - [x] Memindahkan penyimpanan profil dan status pemain dari MySQL pengembangan ke Supabase produksi.
 - [x] Menerapkan skema pemain serta kebijakan keamanan akses pada Supabase.
@@ -17,5 +17,6 @@
 - [x] Menguji endpoint autentikasi Telegram dengan initData valid dan tidak valid.
 - [x] Menguji endpoint webhook Telegram dengan webhook secret benar dan salah.
 - [x] Menambahkan rahasia server Telegram dan Supabase ke environment variables Vercel untuk mengaktifkan fungsi produksi.
-- [ ] Menetapkan URL Mini App dan webhook Telegram ke domain produksi Vercel, lalu memverifikasi endpoint kesehatan produksi.
-- [ ] Membuat repository GitHub privat dan menyiapkan deployment Vercel dengan secrets aman.
+- [x] Menetapkan URL Mini App dan webhook Telegram ke domain produksi Vercel, lalu memverifikasi endpoint kesehatan produksi.
+- [x] Membuat repository GitHub privat dan menyiapkan deployment Vercel dengan secrets aman.
+- [ ] Memverifikasi asal URL Mini App yang dikonfigurasi pada fungsi Vercel production.

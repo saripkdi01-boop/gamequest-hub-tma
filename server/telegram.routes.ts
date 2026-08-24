@@ -9,7 +9,18 @@ function headerValue(request: Request, name: string): string | undefined {
 
 export function registerTelegramRoutes(app: Express) {
   app.get("/api/telegram/health", (_request, response) => {
-    response.status(200).json({ service: "telegram", configured: Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_WEBHOOK_SECRET) });
+    const configuredWebAppUrl = process.env.TELEGRAM_WEB_APP_URL;
+    let webAppOrigin: string | null = null;
+    try {
+      webAppOrigin = configuredWebAppUrl ? new URL(configuredWebAppUrl).origin : null;
+    } catch {
+      webAppOrigin = null;
+    }
+    response.status(200).json({
+      service: "telegram",
+      configured: Boolean(process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_WEBHOOK_SECRET),
+      webAppOrigin,
+    });
   });
 
   app.post("/api/telegram/auth", async (request: Request, response: Response) => {
