@@ -38,7 +38,8 @@
 - [x] Mengimplementasikan scene eksplorasi playable serta menghubungkannya ke progres quest server-side.
 - [x] Mengoptimalkan pemuatan Babylon agar dashboard utama tetap ringan di jaringan Telegram mobile.
 - [x] Menambahkan navigasi kembali native Telegram dan haptic fokus gate pada mode eksplorasi.
-- [ ] Menyempurnakan reward, haptic, safe area, dan alur game khusus Telegram.
+- [x] Menyempurnakan reward, haptic, safe area, dan alur game khusus Telegram.
+- [x] Memverifikasi MainButton dan haptic sukses pada hasil quest tanpa mengganggu fallback browser.
 - [x] Menguji game mobile, build, dokumentasi, serta memperbarui deployment produksi.
-- [ ] Mendorong Explore Route terbaru ke GitHub dan memverifikasi deployment Vercel production.
-- [ ] Memperbaiki fallback routing SPA Vercel agar tautan langsung ke Explore Route tidak menghasilkan 404.
+- [x] Mendorong Explore Route terbaru ke GitHub dan memverifikasi deployment Vercel production.
+- [x] Memperbaiki fallback routing SPA Vercel agar tautan langsung ke Explore Route tidak menghasilkan 404.
