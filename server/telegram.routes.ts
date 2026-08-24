@@ -1,5 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { upsertTelegramPlayer } from "./db";
+import { getGameDashboard } from "./game/service";
 import { handleTelegramUpdate, TelegramValidationError, verifyTelegramInitData, verifyWebhookSecret, type TelegramUpdate } from "./telegram";
 
 function headerValue(request: Request, name: string): string | undefined {
@@ -28,7 +29,7 @@ export function registerTelegramRoutes(app: Express) {
       const initData = typeof request.body?.initData === "string" ? request.body.initData : "";
       const user = verifyTelegramInitData(initData);
       const player = await upsertTelegramPlayer(user);
-      response.status(200).json({ player });
+      response.status(200).json({ player, dashboard: await getGameDashboard(player) });
     } catch (error) {
       const status = error instanceof TelegramValidationError ? 401 : 503;
       response.status(status).json({ error: status === 401 ? "Invalid Telegram authentication data" : "Player profile is temporarily unavailable" });

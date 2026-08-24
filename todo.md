@@ -23,3 +23,12 @@
 - [x] Menganalisis kesiapan repository untuk loop game nyata, progres pemain, dan monetisasi iklan.
 - [x] Meneliti dokumentasi Monego serta merancang integrasi iklan yang aman untuk Telegram Mini App.
 - [x] Menyusun prompt DeepSeek implementatif untuk pengembangan game dan monetisasi berikutnya.
+- [x] Menyediakan prompt mandiri yang dapat ditempel ke DeepSeek untuk meng-upgrade seluruh repository GameQuest Hub.
+- [x] Memvalidasi masukan DeepSeek dan menerapkan model data permainan Supabase yang aman.
+- [x] Mengimplementasikan state machine Genesis Run, ledger XP/relic idempoten, dan API game terautentikasi.
+- [x] Mengganti dashboard statis dengan dashboard pemain, quest run, hasil quest, dan leaderboard berbasis data server.
+- [x] Menambahkan fondasi rewarded-ad yang hanya memberikan reward dari postback server-side tervalidasi.
+- [ ] Memverifikasi transaksi atomik rewarded-ad untuk ledger, relic, dan statistik harian.
+- [x] Menambahkan pengujian game/reward, dokumentasi operasional, dan validasi build mobile.
+- [x] Memverifikasi replay completion Genesis Run tetap idempoten tanpa menggandakan reward.
+- [x] Membatasi Genesis Run selesai satu kali per pemain per hari UTC.

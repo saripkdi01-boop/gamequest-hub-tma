@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { upsertTelegramPlayer } from "../../server/db";
 import { TelegramValidationError, verifyTelegramInitData } from "../../server/telegram";
+import { getGameDashboard } from "../../server/game/service";
 
 type ApiRequest = IncomingMessage & { body?: unknown };
 
@@ -27,7 +28,7 @@ export default async function handler(request: ApiRequest, response: ServerRespo
     const initData = typeof body.initData === "string" ? body.initData : "";
     const user = verifyTelegramInitData(initData);
     const player = await upsertTelegramPlayer(user);
-    return sendJson(response, 200, { player });
+    return sendJson(response, 200, { player, dashboard: await getGameDashboard(player) });
   } catch (error) {
     const status = error instanceof TelegramValidationError ? 401 : 503;
     return sendJson(response, status, { error: status === 401 ? "Invalid Telegram authentication data" : "Player profile is temporarily unavailable" });

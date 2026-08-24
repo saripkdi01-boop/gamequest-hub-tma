@@ -5,12 +5,20 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import QuestRun from "./pages/QuestRun";
+import QuestResult from "./pages/QuestResult";
+import Leaderboard from "./pages/Leaderboard";
+import RewardBonus from "./pages/RewardBonus";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/quest"} component={QuestRun} />
+      <Route path={"/result"} component={QuestResult} />
+      <Route path={"/leaderboard"} component={Leaderboard} />
+      <Route path={"/bonus"} component={RewardBonus} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

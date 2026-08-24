@@ -71,7 +71,63 @@ try {
   });
   if (acceptedWebhook.status !== 200) throw new Error(`Expected accepted webhook 200, received ${acceptedWebhook.status}`);
 
-  console.log("Local Telegram endpoint verification passed: auth 200/401 and webhook 200/401.");
+  const initData = signedInitData();
+  const initialDashboard = await request("/api/game/dashboard", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ initData }),
+  });
+  if (initialDashboard.status !== 200) throw new Error(`Expected game dashboard 200, received ${initialDashboard.status}: ${initialDashboard.body}`);
+
+  const started = await request("/api/game/genesis/start", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ initData, questSlug: "genesis-run" }),
+  });
+  if (started.status !== 200) throw new Error(`Expected Genesis Run start 200, received ${started.status}: ${started.body}`);
+  let run = JSON.parse(started.body).run;
+
+  for (const choiceId of ["scan", "anchor", "align"]) {
+    const response = await request("/api/game/genesis/choice", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ initData, runId: run.runId, choiceId }),
+    });
+    if (response.status !== 200) throw new Error(`Expected Genesis choice 200, received ${response.status}: ${response.body}`);
+    run = JSON.parse(response.body).run;
+  }
+  if (run.status !== "completed" || run.result?.xpAwarded !== 25 || run.result?.relicsAwarded !== 3) {
+    throw new Error("Genesis Run completion did not return verified rewards");
+  }
+
+  const replay = await request("/api/game/genesis/choice", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ initData, runId: run.runId, choiceId: "align" }),
+  });
+  const replayRun = JSON.parse(replay.body).run;
+  if (replay.status !== 200 || replayRun.status !== "completed" || replayRun.result?.xpAwarded !== 0 || replayRun.result?.relicsAwarded !== 0) {
+    throw new Error("Genesis Run replay did not return an idempotent completion response");
+  }
+
+  const completedDashboard = await request("/api/game/dashboard", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ initData }),
+  });
+  const completedState = JSON.parse(completedDashboard.body).dashboard;
+  if (completedDashboard.status !== 200 || completedState.player.experience !== 25 || completedState.player.relics !== 3) {
+    throw new Error("Genesis Run rewards were not persisted to the dashboard");
+  }
+
+  const blockedDailyRun = await request("/api/game/genesis/start", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ initData, questSlug: "genesis-run" }),
+  });
+  if (blockedDailyRun.status !== 409) throw new Error(`Expected daily Genesis Run limit 409, received ${blockedDailyRun.status}`);
+
+  console.log("Local verification passed: Telegram auth/webhook, Genesis Run checkpoint flow, persisted rewards, idempotent replay, and daily limit.");
 } finally {
   await cleanupTestPlayer();
 }
