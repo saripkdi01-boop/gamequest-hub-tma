@@ -28,7 +28,7 @@
 - [x] Mengimplementasikan state machine Genesis Run, ledger XP/relic idempoten, dan API game terautentikasi.
 - [x] Mengganti dashboard statis dengan dashboard pemain, quest run, hasil quest, dan leaderboard berbasis data server.
 - [x] Menambahkan fondasi rewarded-ad yang hanya memberikan reward dari postback server-side tervalidasi.
-- [ ] Memverifikasi transaksi atomik rewarded-ad untuk ledger, relic, dan statistik harian.
+- [x] Memverifikasi transaksi atomik rewarded-ad untuk ledger, relic, dan statistik harian melalui pemain uji sementara.
 - [x] Menambahkan pengujian game/reward, dokumentasi operasional, dan validasi build mobile.
 - [x] Memverifikasi replay completion Genesis Run tetap idempoten tanpa menggandakan reward.
 - [x] Membatasi Genesis Run selesai satu kali per pemain per hari UTC.

@@ -1,4 +1,4 @@
-import { createHmac } from "node:crypto";
+import { createHmac, randomUUID } from "node:crypto";
 
 const baseUrl = "http://localhost:3000";
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -40,6 +40,21 @@ async function cleanupTestPlayer() {
     },
   });
   if (!response.ok) throw new Error("Unable to clean up the temporary endpoint-check player");
+}
+
+async function supabaseRequest(path, options = {}) {
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      apikey: supabaseKey,
+      authorization: `Bearer ${supabaseKey}`,
+      "content-type": "application/json",
+      ...(options.headers ?? {}),
+    },
+  });
+  const body = await response.text();
+  if (!response.ok) throw new Error(`Supabase request failed (${response.status}): ${body}`);
+  return body ? JSON.parse(body) : null;
 }
 
 try {
@@ -127,7 +142,20 @@ try {
   });
   if (blockedDailyRun.status !== 409) throw new Error(`Expected daily Genesis Run limit 409, received ${blockedDailyRun.status}`);
 
-  console.log("Local verification passed: Telegram auth/webhook, Genesis Run checkpoint flow, persisted rewards, idempotent replay, and daily limit.");
+  const [{ id: testPlayerId }] = await supabaseRequest(`gamequest_players?telegram_user_id=eq.${testUserId}&select=id`, { method: "GET" });
+  const ymid = randomUUID();
+  await supabaseRequest("ad_reward_intents", {
+    method: "POST",
+    headers: { prefer: "return=minimal" },
+    body: JSON.stringify({ ymid, player_id: testPlayerId, placement: "daily_bonus", reward_currency: "relic", reward_amount: 5, expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() }),
+  });
+  const firstAdReward = await supabaseRequest("rpc/grant_monetag_reward", { method: "POST", body: JSON.stringify({ p_ymid: ymid }) });
+  const replayAdReward = await supabaseRequest("rpc/grant_monetag_reward", { method: "POST", body: JSON.stringify({ p_ymid: ymid }) });
+  if (!firstAdReward.rewarded || !replayAdReward.duplicate || replayAdReward.rewarded) throw new Error("Rewarded-ad database function is not idempotent");
+  const [{ relics: relicsAfterAd }] = await supabaseRequest(`gamequest_players?telegram_user_id=eq.${testUserId}&select=relics`, { method: "GET" });
+  if (relicsAfterAd !== 8) throw new Error("Atomic rewarded-ad grant did not persist exactly five relics");
+
+  console.log("Local verification passed: Telegram auth/webhook, Genesis Run, idempotent replay, daily limit, and atomic rewarded-ad ledger grant.");
 } finally {
   await cleanupTestPlayer();
 }
