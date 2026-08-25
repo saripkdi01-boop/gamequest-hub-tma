@@ -60,6 +60,85 @@ function experienceToNextLevel(experience) {
   return Math.max(0, (nextLevel - 1) ** 2 * 100 - experience);
 }
 
+// api/_lib/supabase.ts
+import { createClient as createClient2 } from "@supabase/supabase-js";
+function getSupabaseServerClient2() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_KEY;
+  if (!url || !key) throw new Error("Supabase server credentials are not configured");
+  return createClient2(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
+}
+
+// api/_lib/game/guide-service.ts
+var GUIDE_IDS = ["nexus", "pocket", "tonbit", "crosslink", "neura", "sosialis", "shieldtma", "pixelx", "speedrun", "legenda"];
+var GUIDE_META = [
+  { id: "nexus", name: "NEXUS", codename: "The Pathfinder", rarity: "common", role: "Route command" },
+  { id: "pocket", name: "POCKET", codename: "The Battery", rarity: "rare", role: "Energy reserve" },
+  { id: "tonbit", name: "TONBIT", codename: "The Broker", rarity: "epic", role: "Stars utility" },
+  { id: "crosslink", name: "CROSSLINK", codename: "The Relay", rarity: "rare", role: "Route efficiency" },
+  { id: "neura", name: "NEURA", codename: "The Oracle", rarity: "epic", role: "Mind analysis" },
+  { id: "sosialis", name: "SOSIALIS", codename: "The Signal", rarity: "rare", role: "Referral network" },
+  { id: "shieldtma", name: "SHIELDTMA", codename: "The Warden", rarity: "epic", role: "Streak defense" },
+  { id: "pixelx", name: "PIXELX", codename: "The Miner", rarity: "epic", role: "Quest Coin output" },
+  { id: "speedrun", name: "SPEEDRUN", codename: "The Runner", rarity: "rare", role: "Fast progression" },
+  { id: "legenda", name: "LEGENDA", codename: "The Crown", rarity: "legendary", role: "Nexus mastery" }
+];
+function isGuideId(value) {
+  return typeof value === "string" && GUIDE_IDS.includes(value);
+}
+function parseBenefit(value, guideId) {
+  const raw = value ?? {};
+  return {
+    guideId,
+    rarity: raw.rarity ?? "common",
+    xpMultiplier: Number(raw.xpMultiplier ?? 1),
+    qcMultiplier: Number(raw.qcMultiplier ?? 1),
+    mindMultiplier: Number(raw.mindMultiplier ?? 1),
+    maxEnergyBonus: Number(raw.maxEnergyBonus ?? 0),
+    starsBonusPercent: raw.starsBonusPercent == null ? void 0 : Number(raw.starsBonusPercent),
+    energyCostMultiplier: raw.energyCostMultiplier == null ? void 0 : Number(raw.energyCostMultiplier),
+    referralBonusPercent: raw.referralBonusPercent == null ? void 0 : Number(raw.referralBonusPercent),
+    streakProtection: raw.streakProtection == null ? void 0 : Number(raw.streakProtection),
+    label: String(raw.label ?? "Quest Nexus guide benefit")
+  };
+}
+async function benefitsFor(guideId) {
+  const { data, error } = await getSupabaseServerClient2().rpc("get_guide_benefits", { p_guide_id: guideId });
+  if (error || !data) throw new Error(error?.message ?? "GUIDE_BENEFITS_UNAVAILABLE");
+  return parseBenefit(data, guideId);
+}
+async function getGuideState(player) {
+  const supabase = getSupabaseServerClient2();
+  const { error: nexusError } = await supabase.from("player_guides").upsert({ player_id: player.id, guide_id: "nexus", level: 1 }, { onConflict: "player_id,guide_id", ignoreDuplicates: true });
+  if (nexusError) throw new Error(nexusError.message);
+  const [{ data: ownedRows, error: ownedError }, benefits] = await Promise.all([
+    supabase.from("player_guides").select("guide_id,level").eq("player_id", player.id),
+    Promise.all(GUIDE_IDS.map(benefitsFor))
+  ]);
+  if (ownedError) throw new Error(ownedError.message);
+  const owned = new Map((ownedRows ?? []).map((row) => [String(row.guide_id), Number(row.level ?? 1)]));
+  const activeGuideId = isGuideId(player.activeGuideId) ? player.activeGuideId : "nexus";
+  return {
+    activeGuideId,
+    unlockCostRelics: 50,
+    benefits: benefits.find((item) => item.guideId === activeGuideId) ?? benefits[0],
+    guides: GUIDE_META.map((meta) => ({
+      ...meta,
+      owned: owned.has(meta.id),
+      level: owned.get(meta.id) ?? 0,
+      benefit: benefits.find((item) => item.guideId === meta.id) ?? benefits[0]
+    }))
+  };
+}
+function getDailyLoginState(player) {
+  const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  const streakDay = Math.max(0, Math.min(7, player.dailyLoginStreak));
+  const claimedToday = player.dailyLoginLastDay === today;
+  const nextDay = claimedToday ? Math.min(7, Math.max(1, streakDay)) : player.dailyLoginLastDay === new Date(Date.now() - 864e5).toISOString().slice(0, 10) ? Math.min(7, streakDay + 1) : 1;
+  const rewardTrack = [1, 2, 3, 4, 5, 6, 10];
+  return { streakDay, claimedToday, nextRewardRelics: rewardTrack[nextDay - 1], rewardTrack };
+}
+
 // server/game/service.ts
 var startQuestSchema = z.object({ questSlug: z.literal("genesis-run") });
 var choiceSchema = z.object({ runId: z.string().uuid(), choiceId: z.string().min(1).max(32) });
@@ -76,11 +155,12 @@ function asProgress(value) {
 }
 async function getGameDashboard(player) {
   const supabase = getSupabaseServerClient();
-  const [{ data: quest, error: questError }, { data: activeRun, error: runError }, { data: daily, error: dailyError }, { data: inventory, error: inventoryError }] = await Promise.all([
+  const [{ data: quest, error: questError }, { data: activeRun, error: runError }, { data: daily, error: dailyError }, { data: inventory, error: inventoryError }, guideState] = await Promise.all([
     supabase.from("quests").select("id,title,description,reward_xp,reward_relics").eq("slug", "genesis-run").eq("active", true).single(),
     supabase.from("player_quests").select("id,status,progress_json,quest_id").eq("player_id", player.id).eq("status", "active").order("started_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("daily_player_stats").select("completed_quests,rewarded_ads_count,correct_answers,qc_emitted,daily_score").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle(),
-    supabase.from("player_item_inventory").select("item_key,quantity").eq("player_id", player.id).order("item_key", { ascending: true })
+    supabase.from("player_item_inventory").select("item_key,quantity").eq("player_id", player.id).order("item_key", { ascending: true }),
+    getGuideState(player)
   ]);
   if (questError || !quest) throw new Error(questError?.message ?? "Genesis Run is unavailable");
   if (runError || dailyError || inventoryError) throw new Error(runError?.message ?? dailyError?.message ?? inventoryError?.message ?? "Unable to load game state");
@@ -99,7 +179,9 @@ async function getGameDashboard(player) {
       mindScore: player.mindScore,
       dailyScore: player.dailyScore,
       energy: player.energy,
-      comboBest: player.comboBest
+      maxEnergy: 10 + guideState.benefits.maxEnergyBonus,
+      comboBest: player.comboBest,
+      activeGuideId: guideState.activeGuideId
     },
     genesisRun: {
       id: activeRun?.id ?? null,
@@ -111,6 +193,8 @@ async function getGameDashboard(player) {
       checkpointIndex: progress.checkpointIndex
     },
     daily: { completedQuests: daily?.completed_quests ?? 0, rewardedAdsCount: daily?.rewarded_ads_count ?? 0, correctAnswers: daily?.correct_answers ?? 0, qcEmitted: daily?.qc_emitted ?? 0, dailyScore: daily?.daily_score ?? 0 },
+    guideState,
+    dailyLogin: getDailyLoginState(player),
     inventory: (inventory ?? []).map((item) => ({ itemKey: item.item_key, quantity: item.quantity }))
   };
 }
@@ -147,7 +231,12 @@ async function getPlayerProfile(player) {
         mindScore: player.mindScore,
         dailyScore: player.dailyScore,
         energy: player.energy,
-        comboBest: player.comboBest
+        maxEnergy: dashboard.player.maxEnergy,
+        comboBest: player.comboBest,
+        activeGuideId: dashboard.guideState.activeGuideId,
+        dailyLoginStreak: dashboard.dailyLogin.streakDay,
+        dailyLoginClaimedToday: dashboard.dailyLogin.claimedToday,
+        guideBenefitLabel: dashboard.guideState.benefits.label
       },
       rank: { seasonId: ranking?.season_id ?? "alpha-1", rank: ranking?.rank ?? null, score: Number(ranking?.score ?? player.experience) }
     },

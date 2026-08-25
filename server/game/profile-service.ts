@@ -27,7 +27,12 @@ export type PlayerProfile = {
     mindScore: number;
     dailyScore: number;
     energy: number;
+    maxEnergy: number;
     comboBest: number;
+    activeGuideId: string;
+    dailyLoginStreak: number;
+    dailyLoginClaimedToday: boolean;
+    guideBenefitLabel: string;
   };
   rank: { seasonId: string; rank: number | null; score: number };
 };
@@ -62,7 +67,12 @@ export async function getPlayerProfile(player: GameQuestPlayer): Promise<{ profi
         mindScore: player.mindScore,
         dailyScore: player.dailyScore,
         energy: player.energy,
+        maxEnergy: dashboard.player.maxEnergy,
         comboBest: player.comboBest,
+        activeGuideId: dashboard.guideState.activeGuideId,
+        dailyLoginStreak: dashboard.dailyLogin.streakDay,
+        dailyLoginClaimedToday: dashboard.dailyLogin.claimedToday,
+        guideBenefitLabel: dashboard.guideState.benefits.label,
       },
       rank: { seasonId: ranking?.season_id ?? "alpha-1", rank: ranking?.rank ?? null, score: Number(ranking?.score ?? player.experience) },
     },

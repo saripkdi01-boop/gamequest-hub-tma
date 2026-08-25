@@ -1,5 +1,7 @@
 export type QuestStatus = "available" | "active" | "completed" | "failed";
 
+import type { DailyLoginState, GuideState } from "./guide-service";
+
 export type GenesisChoice = {
   id: string;
   title: string;
@@ -34,7 +36,9 @@ export type GameDashboard = {
     mindScore: number;
     dailyScore: number;
     energy: number;
+    maxEnergy: number;
     comboBest: number;
+    activeGuideId: string;
   };
   genesisRun: {
     id: string | null;
@@ -46,6 +50,8 @@ export type GameDashboard = {
     checkpointIndex: number;
   };
   daily: { completedQuests: number; rewardedAdsCount: number; correctAnswers: number; qcEmitted: number; dailyScore: number };
+  guideState: GuideState;
+  dailyLogin: DailyLoginState;
   inventory: Array<{ itemKey: string; quantity: number }>;
 };
 

@@ -27,6 +27,9 @@ export type GameQuestPlayer = {
   dailyScore: number;
   energy: number;
   comboBest: number;
+  activeGuideId: string;
+  dailyLoginStreak: number;
+  dailyLoginLastDay: string | null;
   preferredLanguage: LanguageCode;
   playerStatus: "new" | "active" | "inactive";
   createdAt: string;
@@ -62,6 +65,9 @@ function toGameQuestPlayer(row: Record<string, unknown>): GameQuestPlayer {
     dailyScore: Number(row.daily_score ?? 0),
     energy: Number(row.energy ?? 10),
     comboBest: Number(row.combo_best ?? 0),
+    activeGuideId: String(row.active_guide_id ?? "nexus"),
+    dailyLoginStreak: Number(row.daily_login_streak ?? 0),
+    dailyLoginLastDay: row.daily_login_last_day ? String(row.daily_login_last_day) : null,
     preferredLanguage: languageFromTelegramCode(row.preferred_language ? String(row.preferred_language) : String(row.language_code ?? "en")),
     playerStatus: row.player_status as GameQuestPlayer["playerStatus"],
     createdAt: String(row.created_at),

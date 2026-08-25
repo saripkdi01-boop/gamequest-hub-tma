@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSupabaseServerClient, type GameQuestPlayer } from "../supabase";
 import { checkpointFor, experienceToNextLevel, initialGenesisProgress, resolveChoice } from "./engine";
 import type { GameDashboard, GenesisProgress, QuestStatus, RunUpdate } from "./types";
+import { getDailyLoginState, getGuideState } from "./guide-service";
 
 const startQuestSchema = z.object({ questSlug: z.literal("genesis-run") });
 const choiceSchema = z.object({ runId: z.string().uuid(), choiceId: z.string().min(1).max(32) });
@@ -25,11 +26,12 @@ function asProgress(value: unknown): GenesisProgress {
 
 export async function getGameDashboard(player: GameQuestPlayer): Promise<GameDashboard> {
   const supabase = getSupabaseServerClient();
-  const [{ data: quest, error: questError }, { data: activeRun, error: runError }, { data: daily, error: dailyError }, { data: inventory, error: inventoryError }] = await Promise.all([
+  const [{ data: quest, error: questError }, { data: activeRun, error: runError }, { data: daily, error: dailyError }, { data: inventory, error: inventoryError }, guideState] = await Promise.all([
     supabase.from("quests").select("id,title,description,reward_xp,reward_relics").eq("slug", "genesis-run").eq("active", true).single(),
     supabase.from("player_quests").select("id,status,progress_json,quest_id").eq("player_id", player.id).eq("status", "active").order("started_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("daily_player_stats").select("completed_quests,rewarded_ads_count,correct_answers,qc_emitted,daily_score").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle(),
     supabase.from("player_item_inventory").select("item_key,quantity").eq("player_id", player.id).order("item_key", { ascending: true }),
+    getGuideState(player),
   ]);
   if (questError || !quest) throw new Error(questError?.message ?? "Genesis Run is unavailable");
   if (runError || dailyError || inventoryError) throw new Error(runError?.message ?? dailyError?.message ?? inventoryError?.message ?? "Unable to load game state");
@@ -48,7 +50,9 @@ export async function getGameDashboard(player: GameQuestPlayer): Promise<GameDas
       mindScore: player.mindScore,
       dailyScore: player.dailyScore,
       energy: player.energy,
+      maxEnergy: 10 + guideState.benefits.maxEnergyBonus,
       comboBest: player.comboBest,
+      activeGuideId: guideState.activeGuideId,
     },
     genesisRun: {
       id: activeRun?.id ?? null,
@@ -60,6 +64,8 @@ export async function getGameDashboard(player: GameQuestPlayer): Promise<GameDas
       checkpointIndex: progress.checkpointIndex,
     },
     daily: { completedQuests: daily?.completed_quests ?? 0, rewardedAdsCount: daily?.rewarded_ads_count ?? 0, correctAnswers: daily?.correct_answers ?? 0, qcEmitted: daily?.qc_emitted ?? 0, dailyScore: daily?.daily_score ?? 0 },
+    guideState,
+    dailyLogin: getDailyLoginState(player),
     inventory: (inventory ?? []).map(item => ({ itemKey: item.item_key, quantity: item.quantity })),
   };
 }

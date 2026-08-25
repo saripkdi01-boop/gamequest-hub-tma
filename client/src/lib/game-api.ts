@@ -1,4 +1,8 @@
 export type QuizMode = "know" | "bluff" | "chain" | "boss" | "world";
+export type GuideId = "nexus" | "pocket" | "tonbit" | "crosslink" | "neura" | "sosialis" | "shieldtma" | "pixelx" | "speedrun" | "legenda";
+export type GuideBenefit = { guideId: GuideId; rarity: "common" | "rare" | "epic" | "legendary"; xpMultiplier: number; qcMultiplier: number; mindMultiplier: number; maxEnergyBonus: number; starsBonusPercent?: number; energyCostMultiplier?: number; referralBonusPercent?: number; streakProtection?: number; label: string };
+export type GuideState = { activeGuideId: GuideId; unlockCostRelics: number; benefits: GuideBenefit; guides: Array<{ id: GuideId; name: string; codename: string; rarity: GuideBenefit["rarity"]; role: string; owned: boolean; level: number; benefit: GuideBenefit }> };
+export type DailyLoginState = { streakDay: number; claimedToday: boolean; nextRewardRelics: number; rewardTrack: number[] };
 
 export type PublicQuestion = {
   id: string;
@@ -34,7 +38,12 @@ export type Profile = {
     mindScore: number;
     dailyScore: number;
     energy: number;
+    maxEnergy: number;
     comboBest: number;
+    activeGuideId: GuideId;
+    dailyLoginStreak: number;
+    dailyLoginClaimedToday: boolean;
+    guideBenefitLabel: string;
   };
   rank: { seasonId: string; rank: number | null; score: number };
 };
@@ -55,7 +64,9 @@ export type Dashboard = {
     mindScore: number;
     dailyScore: number;
     energy: number;
+    maxEnergy: number;
     comboBest: number;
+    activeGuideId: string;
   };
   genesisRun: {
     id: string | null;
@@ -67,6 +78,8 @@ export type Dashboard = {
     checkpointIndex: number;
   };
   daily: { completedQuests: number; rewardedAdsCount: number; correctAnswers?: number; qcEmitted?: number; dailyScore?: number };
+  guideState: GuideState;
+  dailyLogin: DailyLoginState;
   inventory: Array<{ itemKey: string; quantity: number }>;
 };
 
@@ -164,6 +177,26 @@ export function updateLanguage(initData: string | undefined, language: string) {
 
 export function getDashboard(initData?: string) {
   return request<{ dashboard: Dashboard }>("/api/game/dashboard", initData);
+}
+
+export function getGuideState(initData?: string) {
+  return request<{ guideState: GuideState }>("/api/game/dashboard", initData, { action: "guide_state" });
+}
+
+export function selectGuide(initData: string | undefined, guideId: GuideId) {
+  return request<{ selection: { activeGuideId: GuideId; benefits: GuideBenefit } }>("/api/game/dashboard", initData, { action: "select_guide", guideId });
+}
+
+export function unlockGuideWithRelics(initData: string | undefined, guideId: GuideId) {
+  return request<{ unlock: { unlocked: boolean; duplicate: boolean; guideId: GuideId; relics: number } }>("/api/game/dashboard", initData, { action: "unlock_guide_relics", guideId });
+}
+
+export function claimDailyLogin(initData?: string) {
+  return request<{ claim: { claimed: boolean; duplicate: boolean; streakDay: number; rewardRelics: number; relics: number } }>("/api/game/dashboard", initData, { action: "claim_daily_login" });
+}
+
+export function regenerateEnergy(initData?: string) {
+  return request<{ energy: { energy: number; maxEnergy: number; recovered: number } }>("/api/game/dashboard", initData, { action: "regenerate_energy" });
 }
 
 export function startGenesisRun(initData?: string) {

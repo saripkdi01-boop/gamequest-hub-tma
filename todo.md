@@ -67,3 +67,20 @@
 - [x] Verify both arena flows on production and document remaining owner-side blockers: browser preview correctly remains non-rewarding and requires a verified Telegram session; deployment 25bde2d is READY.
 
 Evidence screenshots are stored outside the repository under /home/ubuntu/upload/ and are treated as evidence only.
+
+## Worldclass upgrade proposal — pasted_content.txt
+
+- [x] Audit setiap klaim fitur dalam pasted_content.txt terhadap source code, migration, dan deployment aktif.
+- [x] Tetapkan batas implementasi ekonomi v2 agar tidak mengaktifkan reward, Stars, iklan, staking, referral, atau redemption tanpa konfigurasi server dan owner-side approval.
+- [x] Implementasikan guide benefits server-authoritative dengan kontrak schema, RPC, API client, dan dashboard yang konsisten end-to-end.
+- [x] Implementasikan retention mechanics yang aman: daily login dan energy recovery tanpa memanipulasi ledger atau melewati idempotency.
+- [ ] Implementasikan katalog item/Stars hanya melalui Telegram invoice dan server-side fulfillment, tanpa membuat saldo atau harga fiktif.
+- [x] Upgrade UI roster, guide detail, Home/Profile economy status, serta fallback disabled yang jelas; VIP/season tetap informational dan belum mengaktifkan transaksi.
+- [x] Mempertahankan visual 3D karakter lifecycle-safe dan fallback ringan yang sudah tersedia untuk Telegram mobile.
+- [x] Tambahkan regression tests untuk roster guide dan daily login/retention primitives; inventory dan payment tetap menggunakan kontrak existing yang tidak diaktifkan tanpa konfigurasi.
+- [x] Jalankan audit production dan quality gates setelah seluruh kontrak backend tervalidasi; deployment production dilakukan setelah push checkpoint ini.
+- [x] Dokumentasikan fitur yang aktif, feature-flagged, atau masih membutuhkan konfigurasi pemilik.
+
+Source attachments reviewed: `/home/ubuntu/upload/pasted_content.txt`, `/home/ubuntu/upload/code_25082026.txt`, `/home/ubuntu/upload/code_25082026.sh`, `/home/ubuntu/upload/code_25082026.csv`, `/home/ubuntu/upload/code_25082026_1.csv`, `/home/ubuntu/upload/code_25082026_2.csv`.
+
+Important constraint: recommendations in pasted_content.txt are input for audit, not proof that those files or migrations already exist in the active repository.
