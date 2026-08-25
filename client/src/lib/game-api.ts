@@ -115,11 +115,11 @@ async function request<T>(path: string, initData?: string, payload?: Record<stri
 }
 
 export function getProfile(initData?: string) {
-  return request<ProfileResponse>("/api/game/profile", initData);
+  return request<ProfileResponse>("/api/game/dashboard", initData, { action: "profile" });
 }
 
 export function updateLanguage(initData: string | undefined, language: string) {
-  return request<{ preference: { language: string } }>("/api/game/profile", initData, { action: "language", language });
+  return request<{ preference: { language: string } }>("/api/game/dashboard", initData, { action: "language", language });
 }
 
 export function getDashboard(initData?: string) {

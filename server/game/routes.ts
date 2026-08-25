@@ -35,7 +35,15 @@ export function registerGameRoutes(app: Express) {
 
   app.post("/api/game/dashboard", async (request: Request, response: Response) => {
     try {
-      const { player } = await authenticateGameRequest(adapt(request));
+      const { player, body } = await authenticateGameRequest(adapt(request));
+      if (body.action === "profile") {
+        response.status(200).json(await getPlayerProfile(player));
+        return;
+      }
+      if (body.action === "language") {
+        response.status(200).json({ preference: await updatePlayerLanguage(player, body) });
+        return;
+      }
       const dashboard = await getGameDashboard(player);
       response.status(200).json({ dashboard });
     } catch (error) {
