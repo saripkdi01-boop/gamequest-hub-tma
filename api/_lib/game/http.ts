@@ -36,6 +36,7 @@ export function gameErrorStatus(error: unknown): { status: number; message: stri
   if (error instanceof ZodError) return { status: 400, message: "Invalid game request" };
   if (error instanceof SyntaxError) return { status: 400, message: "Malformed request body" };
   const message = error instanceof Error ? error.message : "Game service is unavailable";
+  if (/invalid json|malformed request body/i.test(message)) return { status: 400, message: "Malformed request body" };
   if (/not found|unavailable|not active|invalid|already|daily|cooling down/i.test(message)) return { status: 409, message };
   return { status: 503, message: "Game service is temporarily unavailable" };
 }
