@@ -12,6 +12,35 @@ export type PublicQuestion = {
   expiresAt: string;
 };
 
+export type Profile = {
+  id: string;
+  telegramUserId: number;
+  firstName: string;
+  lastName: string | null;
+  username: string | null;
+  photoUrl: string | null;
+  languageCode: string | null;
+  preferredLanguage: string;
+  playerStatus: "new" | "active" | "inactive";
+  createdAt: string;
+  lastSeenAt: string;
+  stats: {
+    level: number;
+    experience: number;
+    experienceToNextLevel: number;
+    questStreak: number;
+    relics: number;
+    questCoins: number;
+    mindScore: number;
+    dailyScore: number;
+    energy: number;
+    comboBest: number;
+  };
+  rank: { seasonId: string; rank: number | null; score: number };
+};
+
+export type ProfileResponse = { profile: Profile; dashboard: Dashboard };
+
 export type Dashboard = {
   player: {
     id: string;
@@ -85,6 +114,14 @@ async function request<T>(path: string, initData?: string, payload?: Record<stri
   return data as T;
 }
 
+export function getProfile(initData?: string) {
+  return request<ProfileResponse>("/api/game/profile", initData);
+}
+
+export function updateLanguage(initData: string | undefined, language: string) {
+  return request<{ preference: { language: string } }>("/api/game/profile/language", initData, { language });
+}
+
 export function getDashboard(initData?: string) {
   return request<{ dashboard: Dashboard }>("/api/game/dashboard", initData);
 }
@@ -105,9 +142,11 @@ export function submitQuizAnswer(initData: string | undefined, sessionId: string
   return request<{ quiz: QuizAnswer }>("/api/game/quiz/answer", initData, { sessionId, answerId, clientResponseMs });
 }
 
-export async function getLeaderboard() {
-  const response = await fetch("/api/game/leaderboard", { headers: { accept: "application/json" } });
-  const data = await response.json() as GameResponse<{ leaderboard: Array<{ rank: number; score: number; player: { first_name: string; username: string | null; level: number } }> }>;
+export type LeaderboardRow = { rank: number; score: number; player: { id?: string; first_name: string; username: string | null; level: number; photo_url?: string | null } };
+
+export async function getLeaderboard(season = "alpha-1") {
+  const response = await fetch(`/api/game/leaderboard?season=${encodeURIComponent(season)}`, { headers: { accept: "application/json" } });
+  const data = await response.json() as GameResponse<{ leaderboard: LeaderboardRow[]; season: string }>;
   if (!response.ok) throw new Error(data.error ?? "Leaderboard unavailable");
-  return data.leaderboard;
+  return data;
 }

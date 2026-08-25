@@ -10,6 +10,8 @@ import QuestRun from "./pages/QuestRun";
 import QuestResult from "./pages/QuestResult";
 import Leaderboard from "./pages/Leaderboard";
 import RewardBonus from "./pages/RewardBonus";
+import Profile from "./pages/Profile";
+import { I18nProvider } from "./i18n";
 
 const ExploreRoute = lazy(() => import("./pages/ExploreRoute"));
 const QuizArena = lazy(() => import("./pages/QuizArena"));
@@ -32,6 +34,7 @@ function Router() {
       <Route path={"/mind"} component={QuizArenaRoute} />
       <Route path={"/result"} component={QuestResult} />
       <Route path={"/leaderboard"} component={Leaderboard} />
+      <Route path={"/profile"} component={Profile} />
       <Route path={"/bonus"} component={RewardBonus} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
@@ -52,10 +55,12 @@ function App() {
         defaultTheme="dark"
         // switchable
       >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <I18nProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </I18nProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

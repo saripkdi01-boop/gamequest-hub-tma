@@ -44,6 +44,8 @@ Genesis Run adalah vertical slice permainan yang aktif bagi pemain Telegram terv
 | `POST /api/game/ads/intent` | Membuat intent bonus iklan yang dibatasi daily cap dan cooldown. |
 | `POST /api/game/quiz/start` | Membuat sesi KNOW/CHAIN server-authoritative dan mengembalikan public question tanpa answer key. |
 | `POST /api/game/quiz/answer` | Memvalidasi jawaban, menghitung QC/XP/Mind Score/combo, lalu mencatat reward melalui RPC atomik. |
+| `POST /api/game/profile` | Mengembalikan identitas Telegram, statistik progression, preferensi bahasa, dan rank personal terautentikasi. |
+| `POST /api/game/profile/language` | Menyimpan pilihan bahasa player melalui initData yang tervalidasi dan allowlist 24 locale. |
 
 Mode eksplorasi di-load secara lazy sehingga bundle Babylon hanya diunduh ketika pemain memilih Genesis Run; dashboard awal tetap lebih ringan untuk jaringan Telegram mobile.
 
@@ -54,6 +56,14 @@ Dashboard sekarang memisahkan **Quest Coins (QC)**, XP, Mind Score, Daily Score,
 Migration `supabase/migrations/20260825_questmind_mvp.sql` menambahkan question pool, session/answer records, QC ledger, economy config, power-up catalog, projection player, serta RPC atomik untuk start session dan answer resolution. Pastikan migration ini telah diterapkan pada project Supabase sebelum membuka mode kuis di production.
 
 Suite default menjalankan unit/integration-safe tests. Pengujian credential production bersifat opt-in: `RUN_INTEGRATION_TESTS=true pnpm test`. Jangan memakai browser preview sebagai bukti reward; preview tidak memiliki Telegram identity tervalidasi dan tidak pernah membuat reward.
+
+## Profile, Dashboard, Leaderboard, dan Bahasa
+
+Home sekarang berfungsi sebagai dashboard player yang terhubung ke projection Supabase, sedangkan `/profile` menampilkan identitas Telegram, avatar, level, XP progress, QC, Mind Score, streak, relics, energy, combo best, tanggal bergabung, dan rank season. `/leaderboard` menampilkan podium, daftar peringkat, skor XP, level, avatar, serta highlight posisi player yang sedang login. Semua data player berasal dari backend; browser preview hanya memakai state demo dan tidak dapat memutasi reward.
+
+Language switcher tersedia dalam 24 locale: English, Bahasa Indonesia, Español, Français, Deutsch, Português, Русский, 中文, 日本語, 한국어, العربية, हिन्दी, Türkçe, Italiano, Nederlands, Polski, Українська, Tiếng Việt, ไทย, Bahasa Melayu, Filipino, Kiswahili, فارسی, dan বাংলা. Pilihan disimpan lokal untuk pengalaman cepat dan disinkronkan ke `gamequest_players.preferred_language` ketika Mini App dibuka dengan Telegram initData yang valid.
+
+Migration `supabase/migrations/20260825_profile_language.sql` menambahkan preference bahasa yang divalidasi melalui constraint database. Identitas nama, username, foto, dan language code awal tetap disinkronkan dari Telegram sehingga pengguna tidak dapat memalsukan profil melalui client.
 
 ## Rewarded Ads Monetag
 

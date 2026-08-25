@@ -3,6 +3,7 @@ import { ArrowLeft, Brain, Check, Flame, Gauge, LockKeyhole, ShieldCheck, Sparkl
 import { useLocation } from "wouter";
 import { useTelegramWebApp } from "@/hooks/useTelegramWebApp";
 import { startQuiz, submitQuizAnswer, type PublicQuestion, type QuizMode, type QuizStart } from "@/lib/game-api";
+import { useI18n } from "@/i18n";
 
 const modes: Array<{ id: QuizMode; label: string; kicker: string; description: string; accent: string; enabled: boolean }> = [
   { id: "know", label: "KNOW", kicker: "Precision round", description: "Five questions. Make every choice count.", accent: "#d7fb70", enabled: true },
@@ -11,17 +12,17 @@ const modes: Array<{ id: QuizMode; label: string; kicker: string; description: s
   { id: "boss", label: "BOSS", kicker: "10 second strike", description: "A limited daily challenge is coming next.", accent: "#ff9a6e", enabled: false },
 ];
 
-function ModeSelect({ selected, onSelect, onStart, busy, isTelegram }: { selected: QuizMode; onSelect: (mode: QuizMode) => void; onStart: () => void; busy: boolean; isTelegram: boolean }) {
+function ModeSelect({ selected, onSelect, onStart, busy, isTelegram, t }: { selected: QuizMode; onSelect: (mode: QuizMode) => void; onStart: () => void; busy: boolean; isTelegram: boolean; t: (key: any) => string }) {
   return (
     <>
       <section className="mt-8 rounded-[28px] border border-white/10 bg-[#17243a]/85 p-5 shadow-[0_22px_60px_rgba(0,0,0,.22)]">
-        <div className="flex items-start justify-between gap-4"><div><p className="font-mono text-[10px] uppercase tracking-[.18em] text-[#d7fb70]">Choose your arena</p><h1 className="mt-2 font-display text-[34px] leading-none tracking-[-.055em] text-[#fbf8ed]">Think fast<span className="text-[#d7fb70]">.</span></h1></div><div className="brand-mark"><Brain size={19} /></div></div>
-        <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#aebac4]">Your mind is your weapon. Correctness, speed, and consistency shape the run.</p>
+        <div className="flex items-start justify-between gap-4"><div><p className="font-mono text-[10px] uppercase tracking-[.18em] text-[#d7fb70]">{t("chooseArena")}</p><h1 className="mt-2 font-display text-[34px] leading-none tracking-[-.055em] text-[#fbf8ed]">Think fast<span className="text-[#d7fb70]">.</span></h1></div><div className="brand-mark"><Brain size={19} /></div></div>
+        <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#aebac4]">{t("questMind")}</p>
         <div className="mt-6 grid gap-3">
           {modes.map(mode => <button key={mode.id} disabled={!mode.enabled} onClick={() => onSelect(mode.id)} className={`rounded-2xl border px-4 py-4 text-left transition ${selected === mode.id ? "border-[#d7fb70]/60 bg-[#d7fb70]/[.08]" : "border-white/10 bg-white/[.025]"} ${!mode.enabled ? "cursor-not-allowed opacity-45" : "hover:border-white/25 active:scale-[.99]"}`}><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl border" style={{ borderColor: `${mode.accent}55`, color: mode.accent }}><Gauge size={18} /></span><span className="min-w-0 flex-1"><span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[.16em]" style={{ color: mode.accent }}>{mode.label}{!mode.enabled && <LockKeyhole size={12} />}</span><span className="mt-1 block text-sm font-medium text-[#f5f3e9]">{mode.kicker}</span><span className="mt-1 block text-xs text-[#8f9eac]">{mode.description}</span></span>{selected === mode.id && mode.enabled && <Check size={18} className="text-[#d7fb70]" />}</div></button>)}
         </div>
-        {!isTelegram && <div className="mt-5 flex gap-2 rounded-xl border border-[#f7d774]/20 bg-[#f7d774]/[.05] p-3 text-xs leading-relaxed text-[#d7cfa9]"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#f7d774]" />Open the app inside Telegram to start a verified session. Browser preview never creates rewards.</div>}
-        <button disabled={busy || !isTelegram} onClick={onStart} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d7fb70] py-4 font-semibold text-[#16200f] transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45">{busy ? "Preparing arena…" : "ENTER ARENA"}<Sparkles size={17} /></button>
+        {!isTelegram && <div className="mt-5 flex gap-2 rounded-xl border border-[#f7d774]/20 bg-[#f7d774]/[.05] p-3 text-xs leading-relaxed text-[#d7cfa9]"><ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#f7d774]" />{t("preview")} · Open the app inside Telegram to start a verified session. Browser preview never creates rewards.</div>}
+        <button disabled={busy || !isTelegram} onClick={onStart} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d7fb70] py-4 font-semibold text-[#16200f] transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45">{busy ? `${t("loading")}…` : t("enterArena")}<Sparkles size={17} /></button>
       </section>
     </>
   );
@@ -67,6 +68,7 @@ function QuizSession({ quiz, initData, onExit }: { quiz: QuizStart; initData?: s
 export default function QuizArena() {
   const [, setLocation] = useLocation();
   const { webApp, isTelegram } = useTelegramWebApp();
+  const { t } = useI18n();
   const initData = webApp?.initData;
   const [selected, setSelected] = useState<QuizMode>("know");
   const [quiz, setQuiz] = useState<QuizStart | null>(null);
@@ -82,5 +84,5 @@ export default function QuizArena() {
   }
 
   if (quiz) return <QuizSession quiz={quiz} initData={initData} onExit={() => { setQuiz(null); setLocation("/"); }} />;
-  return <div className="game-shell min-h-[100dvh] pb-[calc(var(--tg-safe-area-inset-bottom)+28px)]"><main className="mx-auto w-full max-w-[520px] px-5 pt-[calc(var(--tg-content-safe-area-inset-top)+18px)]"><header className="flex items-center justify-between"><button onClick={() => setLocation("/")} className="text-left"><p className="font-display text-[21px] leading-none tracking-[-.04em]">QUEST<span className="text-[#d7fb70]">//</span>MIND</p><p className="mt-1 font-mono text-[9px] uppercase tracking-[.17em] text-[#9fae9d]">Think fast · choose smart</p></button><span className="rounded-full border border-white/10 bg-white/[.04] px-3 py-2 font-mono text-[9px] uppercase tracking-[.13em] text-[#d7fb70]">{isTelegram ? "Verified" : "Preview"}</span></header><ModeSelect selected={selected} onSelect={setSelected} onStart={enterArena} busy={busy} isTelegram={isTelegram && Boolean(initData)} />{error && <p className="mt-4 rounded-xl border border-[#ff9a6e]/25 bg-[#ff9a6e]/10 p-3 text-xs text-[#ffd5c2]">{error}</p>}<div className="mt-6 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl border border-white/10 bg-white/[.025] p-3"><Flame size={16} className="mx-auto text-[#ff9a6e]" /><p className="mt-2 font-mono text-[9px] uppercase tracking-[.1em] text-[#8291a0]">Combo</p></div><div className="rounded-xl border border-white/10 bg-white/[.025] p-3"><Trophy size={16} className="mx-auto text-[#f7d774]" /><p className="mt-2 font-mono text-[9px] uppercase tracking-[.1em] text-[#8291a0]">Rank</p></div><div className="rounded-xl border border-white/10 bg-white/[.025] p-3"><Sparkles size={16} className="mx-auto text-[#8de4ff]" /><p className="mt-2 font-mono text-[9px] uppercase tracking-[.1em] text-[#8291a0]">Mind</p></div></div></main></div>;
+  return <div className="game-shell min-h-[100dvh] pb-[calc(var(--tg-safe-area-inset-bottom)+28px)]"><main className="mx-auto w-full max-w-[520px] px-5 pt-[calc(var(--tg-content-safe-area-inset-top)+18px)]"><header className="flex items-center justify-between"><button onClick={() => setLocation("/")} className="text-left"><p className="font-display text-[21px] leading-none tracking-[-.04em]">QUEST<span className="text-[#d7fb70]">//</span>MIND</p><p className="mt-1 font-mono text-[9px] uppercase tracking-[.17em] text-[#9fae9d]">{t("thinkFast")} · {t("chooseArena")}</p></button><span className="rounded-full border border-white/10 bg-white/[.04] px-3 py-2 font-mono text-[9px] uppercase tracking-[.13em] text-[#d7fb70]">{isTelegram ? "Verified" : "Preview"}</span></header><ModeSelect selected={selected} onSelect={setSelected} onStart={enterArena} busy={busy} isTelegram={isTelegram && Boolean(initData)} t={t} />{error && <p className="mt-4 rounded-xl border border-[#ff9a6e]/25 bg-[#ff9a6e]/10 p-3 text-xs text-[#ffd5c2]">{error}</p>}<div className="mt-6 grid grid-cols-3 gap-2 text-center"><div className="rounded-xl border border-white/10 bg-white/[.025] p-3"><Flame size={16} className="mx-auto text-[#ff9a6e]" /><p className="mt-2 font-mono text-[9px] uppercase tracking-[.1em] text-[#8291a0]">{t("streak")}</p></div><div className="rounded-xl border border-white/10 bg-white/[.025] p-3"><Trophy size={16} className="mx-auto text-[#f7d774]" /><p className="mt-2 font-mono text-[9px] uppercase tracking-[.1em] text-[#8291a0]">{t("rank")}</p></div><div className="rounded-xl border border-white/10 bg-white/[.025] p-3"><Sparkles size={16} className="mx-auto text-[#8de4ff]" /><p className="mt-2 font-mono text-[9px] uppercase tracking-[.1em] text-[#8291a0]">{t("mindScore")}</p></div></div></main></div>;
 }

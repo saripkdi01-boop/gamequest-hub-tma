@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { languageFromTelegramCode, type LanguageCode } from "../shared/languages";
 
 export type TelegramPlayerInput = {
   id: number;
@@ -26,6 +27,7 @@ export type GameQuestPlayer = {
   dailyScore: number;
   energy: number;
   comboBest: number;
+  preferredLanguage: LanguageCode;
   playerStatus: "new" | "active" | "inactive";
   createdAt: string;
   updatedAt: string;
@@ -60,6 +62,7 @@ function toGameQuestPlayer(row: Record<string, unknown>): GameQuestPlayer {
     dailyScore: Number(row.daily_score ?? 0),
     energy: Number(row.energy ?? 10),
     comboBest: Number(row.combo_best ?? 0),
+    preferredLanguage: languageFromTelegramCode(row.preferred_language ? String(row.preferred_language) : String(row.language_code ?? "en")),
     playerStatus: row.player_status as GameQuestPlayer["playerStatus"],
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
@@ -79,6 +82,7 @@ export async function upsertGameQuestPlayer(player: TelegramPlayerInput): Promis
       username: player.username ?? null,
       language_code: player.language_code ?? null,
       photo_url: player.photo_url ?? null,
+      preferred_language: languageFromTelegramCode(player.language_code),
       last_seen_at: now,
       updated_at: now,
     }, { onConflict: "telegram_user_id" })

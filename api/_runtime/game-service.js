@@ -203,7 +203,7 @@ async function getLeaderboard(limit = 20) {
   if (error) throw new Error(error.message);
   const ids = (rows ?? []).map((row) => row.player_id);
   if (ids.length === 0) return [];
-  const { data: players, error: playersError } = await supabase.from("gamequest_players").select("id,first_name,username,level").in("id", ids);
+  const { data: players, error: playersError } = await supabase.from("gamequest_players").select("id,first_name,username,level,photo_url").in("id", ids);
   if (playersError) throw new Error(playersError.message);
   const playerById = new Map((players ?? []).map((player) => [player.id, player]));
   return (rows ?? []).map((row, index) => ({
