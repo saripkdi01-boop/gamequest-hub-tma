@@ -3,7 +3,7 @@ import { authenticateGameRequest, gameErrorStatus, sendJson } from "../_runtime/
 import type { ApiRequest } from "../_lib/game/http";
 import { getGameDashboard } from "../_runtime/game-service.js";
 import { getPlayerProfile, updatePlayerLanguage } from "../_runtime/profile-service.js";
-import { createStarsInvoiceLink, getPublicStarsCatalog } from "../_lib/game/stars-service";
+import { createStarsInvoiceLink, getPublicStarsCatalog } from "../_runtime/game-stars-service.js";
 
 export default async function handler(request: ApiRequest, response: ServerResponse) {
   if (request.method !== "POST") return sendJson(response, 405, { error: "Method not allowed" });

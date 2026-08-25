@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { answerStarsPreCheckout, recordStarsSuccessfulPayment } from "../_lib/game/stars-service";
+import { answerStarsPreCheckout, recordStarsSuccessfulPayment } from "../_runtime/game-stars-service.js";
 
 type TelegramUpdate = {
   message?: { text?: string; chat?: { id?: number }; from?: { id?: number }; successful_payment?: { invoice_payload?: string; telegram_payment_charge_id?: string; total_amount?: number; currency?: string } };
