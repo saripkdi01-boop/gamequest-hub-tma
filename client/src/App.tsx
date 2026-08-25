@@ -11,6 +11,8 @@ import QuestResult from "./pages/QuestResult";
 import Leaderboard from "./pages/Leaderboard";
 import RewardBonus from "./pages/RewardBonus";
 import Profile from "./pages/Profile";
+import GuideRoster from "./pages/GuideRoster";
+import GuideQuickNav from "./components/GuideQuickNav";
 import { I18nProvider, useI18n } from "./i18n";
 
 const ExploreRoute = lazy(() => import("./pages/ExploreRoute"));
@@ -38,6 +40,7 @@ function Router() {
       <Route path={"/bonus"} component={RewardBonus} />
       <Route path={"/wallet"} component={WalletRouteRoute} />
       <Route path={"/stars"} component={StarsStoreRouteRoute} />
+      <Route path={"/guides"} component={GuideRoster} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -61,6 +64,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <Router />
+            <GuideQuickNav />
           </TooltipProvider>
         </ErrorBoundary>
       </I18nProvider>

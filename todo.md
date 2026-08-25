@@ -49,3 +49,11 @@
 - [ ] Melakukan uji end-to-end `/start` dan `/run` di bot production serta mencatat bukti tombol Mini App pada balasan bot.
 - [ ] Menelusuri update `/run` production terbaru yang tidak menghasilkan balasan bot meskipun webhook telah dipulihkan.
 - [ ] Mengaudit ulang konfigurasi delivery Telegram dan deployment aktif setelah webhook mandiri tidak membalas command pengguna.
+- [x] Audit struktur production GameQuest Hub dan pilih route gameplay kanonis untuk integrasi 10 karakter.
+- [x] Definisikan metadata, visual fallback, dan peran gameplay untuk NEXUS, POCKET, TONBIT, CROSSLINK, NEURA, SOSIALIS, SHIELDTMA, PIXELX, SPEEDRUN, dan LEGENDA.
+- [x] Tambahkan Character3D lazy loader dengan fallback visual yang aman bagi perangkat Telegram mobile.
+- [x] Buat loop gameplay per karakter yang tetap menggunakan validasi quest dan reward server-authoritative.
+- [x] Bangun roster, detail karakter, serta tampilan progres/season yang konsisten dengan UI Quest Nexus.
+- [x] Rancang referral, VIP, season pass, burn, staking, dan vesting sebagai kontrak backend dengan feature flag nonaktif.
+- [x] Siapkan skema dan migration Supabase yang idempoten tanpa mengaktifkan pembayaran Stars, iklan reward, atau redemption sebelum konfigurasi pemilik tersedia.
+- [ ] Tambahkan regression test, audit Vercel runtime, dan verifikasi produksi sebelum rilis.

@@ -7,3 +7,6 @@
 - Explore Route memakai Babylon dengan fallback WebGL1 yang lebih kompatibel untuk webview/capture mobile. Bila setelah upgrade dependency scene kosong, hapus cache `node_modules/.vite`, restart server, lalu verifikasi ulang screenshot.
 - Build produksi memisahkan Explore Route sebagai bundle lazy; dashboard tidak mengunduh Babylon sampai pemain membuka Genesis Run.
 - Verifikasi server-side Genesis Run mengonfirmasi autentikasi Telegram, tiga checkpoint, replay idempoten, daily limit, dan ledger rewarded-ad atomik.
+- Upgrade karakter menggunakan `/explore` sebagai gameplay kanonis; `/quest` masih merupakan fallback legacy terhadap Genesis Run yang sama dan tidak boleh menerima loop karakter paralel.
+- Tidak ada model GLB yang disediakan pemilik. Implementasi pertama harus memakai procedural mesh dan SVG fallback yang selalu tersedia; GLB hanya progressive enhancement sesudah model optimal diverifikasi.
+- Pilihan salah satu dari sepuluh guide adalah preferensi visual lokal sampai tersedia kontrak server yang mengikatnya ke identitas Telegram tanpa memberi benefit ekonomi dari klien.

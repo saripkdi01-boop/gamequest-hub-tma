@@ -9,6 +9,7 @@ import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { Scene } from "@babylonjs/core/scene";
+import { getGuide, type GuideId } from "./guides";
 import type { GameHandle, ExploreRouteState } from "./types";
 
 type SceneOptions = { onGateFocus: (gateIndex: number) => void };
@@ -62,8 +63,9 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement,
   const violet = material("nexus-violet", "#9a7bff", scene, true, 0.5);
   const gold = material("quest-gold", "#f5b942", scene, true, 0.55);
   const ivory = material("companion-ivory", "#f3efff", scene);
-  const hair = material("companion-hair", "#91a7ff", scene, true, 0.18);
-  const cape = material("companion-cape", "#34316e", scene);
+  const activeGuide = getGuide("nexus");
+  const hair = material("companion-hair", activeGuide.secondary, scene, true, 0.3);
+  const cape = material("companion-cape", activeGuide.primary, scene, true, 0.16);
   const dark = material("companion-dark", "#171431", scene);
   const locked = material("locked-gate", "#3a3c58", scene);
   const focused = material("focused-gate", "#fff0a1", scene, true, 0.8);
@@ -103,6 +105,15 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement,
     const targetZ = Math.min(state.checkpointIndex, 3) * 5.45 - 5.25;
     companion.root.position.z = targetZ - 0.2;
   };
+  const applyGuide = (guideId: GuideId) => {
+    const guide = getGuide(guideId);
+    hair.diffuseColor = Color3.FromHexString(guide.secondary);
+    hair.emissiveColor = Color3.FromHexString(guide.secondary).scale(0.32);
+    cape.diffuseColor = Color3.FromHexString(guide.primary);
+    cape.emissiveColor = Color3.FromHexString(guide.primary).scale(0.18);
+    portalLight.diffuse = Color3.FromHexString(guide.primary);
+    questLight.diffuse = Color3.FromHexString(guide.secondary);
+  };
   applyRouteState(routeState);
 
   const pointerObserver = scene.onPointerObservable.add(pointer => {
@@ -134,6 +145,7 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement,
 
   return {
     updateRoute: applyRouteState,
+    updateGuide: applyGuide,
     dispose: () => {
       scene.onPointerObservable.remove(pointerObserver);
       scene.onBeforeRenderObservable.remove(tickObserver);
