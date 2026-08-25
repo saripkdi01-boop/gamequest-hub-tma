@@ -18,7 +18,9 @@ export async function readJsonBody(request: ApiRequest): Promise<Record<string, 
   const chunks: Buffer[] = [];
   for await (const chunk of request) chunks.push(Buffer.from(chunk));
   const text = Buffer.concat(chunks).toString("utf8");
-  return text ? JSON.parse(text) as Record<string, unknown> : {};
+  if (!text.trim()) return {};
+  try { return JSON.parse(text) as Record<string, unknown>; }
+  catch { throw new SyntaxError("Malformed request body"); }
 }
 
 export async function authenticateGameRequest(request: ApiRequest): Promise<{ player: GameQuestPlayer; body: Record<string, unknown> }> {

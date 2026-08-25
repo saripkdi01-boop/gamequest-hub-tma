@@ -119,13 +119,39 @@ export async function readGameResponse<T>(response: Response): Promise<GameRespo
   return data;
 }
 
+const REQUEST_TIMEOUT_MS = 12_000;
+
 async function request<T>(path: string, initData?: string, payload?: Record<string, unknown>): Promise<T> {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ...(payload ?? {}), initData }),
-  });
-  return await readGameResponse<T>(response) as T;
+  const controller = typeof AbortController === "function" ? new AbortController() : undefined;
+  const timer = controller ? globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS) : undefined;
+  try {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ...(payload ?? {}), initData }),
+      signal: controller?.signal,
+    });
+    return await readGameResponse<T>(response) as T;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw new Error("Game request timed out");
+    throw error;
+  } finally {
+    if (timer !== undefined) globalThis.clearTimeout(timer);
+  }
+}
+
+async function requestGet<T>(path: string): Promise<T> {
+  const controller = typeof AbortController === "function" ? new AbortController() : undefined;
+  const timer = controller ? globalThis.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS) : undefined;
+  try {
+    const response = await fetch(path, { headers: { accept: "application/json" }, signal: controller?.signal });
+    return await readGameResponse<T>(response) as T;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") throw new Error("Game request timed out");
+    throw error;
+  } finally {
+    if (timer !== undefined) globalThis.clearTimeout(timer);
+  }
 }
 
 export function getProfile(initData?: string) {
@@ -158,7 +184,6 @@ export function submitQuizAnswer(initData: string | undefined, sessionId: string
 
 export type LeaderboardRow = { rank: number; score: number; player: { id?: string; first_name: string; username: string | null; level: number; photo_url?: string | null } };
 
-export async function getLeaderboard(season = "alpha-1") {
-  const response = await fetch(`/api/game/leaderboard?season=${encodeURIComponent(season)}`, { headers: { accept: "application/json" } });
-  return await readGameResponse<{ leaderboard: LeaderboardRow[]; season: string }>(response);
+export function getLeaderboard(season = "alpha-1") {
+  return requestGet<{ leaderboard: LeaderboardRow[]; season: string }>(`/api/game/leaderboard?season=${encodeURIComponent(season)}`);
 }

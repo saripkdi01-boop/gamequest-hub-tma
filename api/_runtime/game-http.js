@@ -97,12 +97,18 @@ async function readJsonBody(request) {
   const chunks = [];
   for await (const chunk of request) chunks.push(Buffer.from(chunk));
   const text = Buffer.concat(chunks).toString("utf8");
-  return text ? JSON.parse(text) : {};
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new SyntaxError("Malformed request body");
+  }
 }
 async function authenticateGameRequest(request) {
   const body = await readJsonBody(request);
   const initData = typeof body.initData === "string" ? body.initData : "";
-  const player = await upsertGameQuestPlayer(verifyTelegramInitData(initData));
+  const telegramUser = verifyTelegramInitData(initData);
+  const player = await upsertGameQuestPlayer(telegramUser);
   return { player, body };
 }
 function gameErrorStatus(error) {
