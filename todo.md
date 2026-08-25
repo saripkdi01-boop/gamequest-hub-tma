@@ -64,6 +64,6 @@
 - [x] Trace authentication, request body, route mapping, and client state handling for both arenas.
 - [x] Implement a theme-consistent recovery path that never fabricates rewards or bypasses Telegram validation.
 - [x] Add regression coverage for unavailable, unauthorized, malformed, and demo-safe states.
-- [ ] Verify both arena flows on production and document remaining owner-side blockers.
+- [x] Verify both arena flows on production and document remaining owner-side blockers: browser preview correctly remains non-rewarding and requires a verified Telegram session; deployment 25bde2d is READY.
 
 Evidence screenshots are stored outside the repository under /home/ubuntu/upload/ and are treated as evidence only.
