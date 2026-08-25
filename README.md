@@ -115,3 +115,12 @@ Monetag membedakan callback frontend dari postback server-side dan menyarankan p
 [3]: https://supabase.com/docs/guides/database/postgres/row-level-security "Supabase Row Level Security"
 [4]: https://docs.monetag.com/docs/postbacks/ "Monetag Postbacks Overview"
 [5]: https://docs.monetag.com/docs/postbacks/types/ "Monetag Postback Event Types"
+
+
+## Compact UI dan Localization Audit
+
+Seluruh route aktif sekarang menggunakan shell visual dark yang sama, spacing mobile-first yang lebih rapat, card radius yang lebih kecil, label mikro dengan hierarchy jelas, serta state loading/error yang tidak lagi menggunakan layout fallback terpisah. Route `/`, `/profile`, `/leaderboard`, `/mind`, `/quest`, `/explore`, `/result`, `/bonus`, dan fallback 404 menyediakan akses ke language switcher atau mewarisi locale global.
+
+Chrome UI—navigasi, status, tombol, checkpoint labels, arena mode, timer metadata, feedback benar/salah, reward, error, loading, accessibility label, dan Telegram preview notice—mengambil teks dari provider i18n. Bahasa aktif juga mengatur `document.documentElement.lang` dan arah RTL untuk العربية serta فارسی. Copy konten dinamis yang berasal langsung dari database, seperti pertanyaan dan narasi quest, tetap diperlakukan sebagai data gameplay; lokalisasi konten tersebut memerlukan content locale fields pada question pool agar tidak menerjemahkan jawaban secara client-side.
+
+Audit detail tersimpan pada `AUDIT_UI_LOCALIZATION_COMPACT.md`. Verifikasi visual harus mencakup root dashboard, `/profile`, `/leaderboard`, `/mind`, `/explore?demo=1`, `/result`, `/bonus`, dan route 404 dalam beberapa locale, terutama `id`, `en`, `ar`, `fa`, `zh`, serta `ja`.

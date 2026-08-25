@@ -11,18 +11,14 @@ import QuestResult from "./pages/QuestResult";
 import Leaderboard from "./pages/Leaderboard";
 import RewardBonus from "./pages/RewardBonus";
 import Profile from "./pages/Profile";
-import { I18nProvider } from "./i18n";
+import { I18nProvider, useI18n } from "./i18n";
 
 const ExploreRoute = lazy(() => import("./pages/ExploreRoute"));
 const QuizArena = lazy(() => import("./pages/QuizArena"));
 
-function ExploreRouteRoute() {
-  return <Suspense fallback={<div className="game-shell grid min-h-[100dvh] place-items-center font-mono text-xs uppercase tracking-[.16em] text-[#d7fb70]">Loading exploration route…</div>}><ExploreRoute /></Suspense>;
-}
-
-function QuizArenaRoute() {
-  return <Suspense fallback={<div className="game-shell grid min-h-[100dvh] place-items-center font-mono text-xs uppercase tracking-[.16em] text-[#d7fb70]">Loading quiz arena…</div>}><QuizArena /></Suspense>;
-}
+function RouteLoading({ label }: { label: "exploreRoute" | "chooseArena" }) { const { t } = useI18n(); return <div className="game-shell grid min-h-[100dvh] place-items-center font-mono text-[10px] uppercase tracking-[.14em] text-[#d7fb70]">{t("loading")} · {t(label)}…</div>; }
+function ExploreRouteRoute() { return <Suspense fallback={<RouteLoading label="exploreRoute" />}><ExploreRoute /></Suspense>; }
+function QuizArenaRoute() { return <Suspense fallback={<RouteLoading label="chooseArena" />}><QuizArena /></Suspense>; }
 
 function Router() {
   // make sure to consider if you need authentication for certain routes

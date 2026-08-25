@@ -22,11 +22,11 @@ export function useMonetagAd(initData?: string) {
   }, [enabled]);
 
   const watchDailyBonus = useCallback(async () => {
-    if (!enabled || !initData || !window.GameQuestMonetag) throw new Error("Rewarded ads are not configured");
+    if (!enabled || !initData || !window.GameQuestMonetag) throw new Error("adsNotConfigured");
     setStatus("opening");
     const response = await fetch("/api/game/ads/intent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ initData, placement: "daily_bonus" }) });
     const payload = await response.json() as { intent?: AdIntent; error?: string };
-    if (!response.ok || !payload.intent) { setStatus("error"); throw new Error(payload.error ?? "Unable to prepare reward"); }
+    if (!response.ok || !payload.intent) { setStatus("error"); throw new Error(payload.error ?? "rewardPrepareFailed"); }
     await window.GameQuestMonetag.showRewarded({ ymid: payload.intent.ymid, requestVar: payload.intent.placement });
     setStatus("verifying");
     return payload.intent;

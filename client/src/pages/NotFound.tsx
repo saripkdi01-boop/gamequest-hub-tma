@@ -1,52 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Home } from "lucide-react";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import { useI18n } from "@/i18n";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
-
-  const handleGoHome = () => {
-    setLocation("/");
-  };
-
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardContent className="pt-8 pb-8 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse" />
-              <AlertCircle className="relative h-16 w-16 text-red-500" />
-            </div>
-          </div>
-
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
-
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            Page Not Found
-          </h2>
-
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Sorry, the page you are looking for doesn't exist.
-            <br />
-            It may have been moved or deleted.
-          </p>
-
-          <div
-            id="not-found-button-group"
-            className="flex flex-col sm:flex-row gap-3 justify-center"
-          >
-            <Button
-              onClick={handleGoHome}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const { t } = useI18n();
+  return <div className="game-shell relative grid min-h-[100dvh] place-items-center p-5 text-[#fbf8ed]"><div className="absolute right-4 top-[calc(var(--tg-content-safe-area-inset-top)+14px)]"><LanguageSwitcher compact /></div><main className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#1a2639]/90 p-5 text-center shadow-[0_18px_48px_rgba(0,0,0,.28)]"><div className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-[#ff9a6e]/10 text-[#ff9a6e]"><AlertCircle size={23} /></div><p className="mt-3 font-mono text-[10px] uppercase tracking-[.16em] text-[#ff9a6e]">404</p><h1 className="mt-1.5 font-display text-[28px] leading-none tracking-[-.04em]">{t("questUnavailable")}</h1><p className="mt-2 text-[13px] leading-relaxed text-[#aebac4]">{t("routeUnavailable")}</p><button onClick={() => setLocation("/")} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#d7fb70] px-4 py-2.5 text-sm font-semibold text-[#16200f]"><ArrowLeft size={15} /> {t("backToHub")}</button></main></div>;
 }
