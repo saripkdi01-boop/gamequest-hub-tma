@@ -52,19 +52,19 @@ function Router() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-        // switchable
-      >
-        <I18nProvider>
+    <ThemeProvider
+      defaultTheme="dark"
+      // switchable
+    >
+      <I18nProvider>
+        <ErrorBoundary>
           <TooltipProvider>
             <Toaster />
             <Router />
           </TooltipProvider>
-        </I18nProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+        </ErrorBoundary>
+      </I18nProvider>
+    </ThemeProvider>
   );
 }
 
