@@ -57,3 +57,13 @@
 - [x] Rancang referral, VIP, season pass, burn, staking, dan vesting sebagai kontrak backend dengan feature flag nonaktif.
 - [x] Siapkan skema dan migration Supabase yang idempoten tanpa mengaktifkan pembayaran Stars, iklan reward, atau redemption sebelum konfigurasi pemilik tersedia.
 - [x] Tambahkan regression test, audit Vercel runtime, dan verifikasi produksi sebelum rilis.
+
+## Availability incident — two arenas
+
+- [x] Reproduce the unavailable-service state for both arena entry flows and capture the exact API response contract.
+- [x] Trace authentication, request body, route mapping, and client state handling for both arenas.
+- [x] Implement a theme-consistent recovery path that never fabricates rewards or bypasses Telegram validation.
+- [x] Add regression coverage for unavailable, unauthorized, malformed, and demo-safe states.
+- [ ] Verify both arena flows on production and document remaining owner-side blockers.
+
+Evidence screenshots are stored outside the repository under /home/ubuntu/upload/ and are treated as evidence only.

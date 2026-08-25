@@ -19,8 +19,11 @@ export async function readJsonBody(request: ApiRequest): Promise<Record<string, 
   for await (const chunk of request) chunks.push(Buffer.from(chunk));
   const text = Buffer.concat(chunks).toString("utf8");
   if (!text.trim()) return {};
-  try { return JSON.parse(text) as Record<string, unknown>; }
-  catch { throw new SyntaxError("Malformed request body"); }
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new SyntaxError("Malformed request body");
+  }
 }
 
 export async function authenticateGameRequest(request: ApiRequest): Promise<{ player: GameQuestPlayer; body: Record<string, unknown> }> {
@@ -31,12 +34,27 @@ export async function authenticateGameRequest(request: ApiRequest): Promise<{ pl
   return { player, body };
 }
 
+function arenaStateMessage(message: string): string | null {
+  if (/energy[_ ]?depleted/i.test(message)) return "Arena energy is depleted. Return to the Nexus and recharge before the next run.";
+  if (/already.*completed|daily/i.test(message)) return "This daily route is already complete. A new route unlocks with the next daily cycle.";
+  if (/cooling down/i.test(message)) return "The arena is cooling down. Re-enter after the current cycle finishes.";
+  if (/session[_ ]?not[_ ]?found|quiz[_ ]?session/i.test(message)) return "This Mind session is no longer active. Start a fresh verified session.";
+  if (/quest run not found|active run/i.test(message)) return "This route is no longer active. Return to the Nexus and open the current route.";
+  return null;
+}
+
 export function gameErrorStatus(error: unknown): { status: number; message: string } {
   if (error instanceof TelegramValidationError) return { status: 401, message: "Invalid Telegram authentication data" };
   if (error instanceof ZodError) return { status: 400, message: "Invalid game request" };
   if (error instanceof SyntaxError) return { status: 400, message: "Malformed request body" };
+
   const message = error instanceof Error ? error.message : "Game service is unavailable";
   if (/invalid json|malformed request body/i.test(message)) return { status: 400, message: "Malformed request body" };
-  if (/not found|unavailable|not active|invalid|already|daily|cooling down/i.test(message)) return { status: 409, message };
+
+  const recoveryMessage = arenaStateMessage(message);
+  if (recoveryMessage) return { status: 409, message: recoveryMessage };
+
+  // Missing quest/question configuration and database/RPC failures remain 503.
+  // Their internal messages are intentionally not exposed to the client.
   return { status: 503, message: "Game service is temporarily unavailable" };
 }
