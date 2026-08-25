@@ -56,4 +56,4 @@
 - [x] Bangun roster, detail karakter, serta tampilan progres/season yang konsisten dengan UI Quest Nexus.
 - [x] Rancang referral, VIP, season pass, burn, staking, dan vesting sebagai kontrak backend dengan feature flag nonaktif.
 - [x] Siapkan skema dan migration Supabase yang idempoten tanpa mengaktifkan pembayaran Stars, iklan reward, atau redemption sebelum konfigurasi pemilik tersedia.
-- [ ] Tambahkan regression test, audit Vercel runtime, dan verifikasi produksi sebelum rilis.
+- [x] Tambahkan regression test, audit Vercel runtime, dan verifikasi produksi sebelum rilis.
