@@ -19,3 +19,7 @@ Verifikasi berikutnya harus mencakup leaderboard, arena `/mind`, `/explore?demo=
 Route `/leaderboard` berhasil memuat entry nyata Syarief (#1, 50 XP) dengan layout compact dan label Bahasa Indonesia. Route `/mind` berhasil memuat empat mode dalam kartu ringkas, CTA arena, guard preview, dan tiga metric footer dalam satu viewport.
 
 Temuan localization: pada guard preview arena masih terdapat kalimat hardcoded `Open the app inside Telegram to start a verified session.` setelah teks Bahasa Indonesia. Kalimat ini harus dipindahkan ke i18n supaya tidak ada mixed-language copy ketika locale Indonesia aktif. Dynamic question content belum disentuh karena berasal dari database.
+
+## Final production check
+
+Deployment `f7e9f7c` berstatus READY dan alias canonical tetap `gamequest-hub-tma.vercel.app`. Dashboard preview kini menampilkan deskripsi Genesis Run Bahasa Indonesia, dan arena `/mind` tidak lagi memiliki kalimat Inggris pada preview guard: seluruhnya menjadi `Preview browser tidak pernah membuat reward. Buka aplikasi di dalam Telegram untuk memulai sesi terverifikasi.` Layout dashboard, profil, leaderboard, dan arena tetap compact serta dapat dipindai dalam satu viewport mobile.
