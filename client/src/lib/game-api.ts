@@ -66,7 +66,8 @@ export type Dashboard = {
     rewardRelics: number;
     checkpointIndex: number;
   };
-  daily: { completedQuests: number; rewardedAdsCount: number; correctAnswers?: number; qcEmitted?: number };
+  daily: { completedQuests: number; rewardedAdsCount: number; correctAnswers?: number; qcEmitted?: number; dailyScore?: number };
+  inventory: Array<{ itemKey: string; quantity: number }>;
 };
 
 export type Run = {
@@ -103,15 +104,28 @@ export type QuizAnswer = {
 
 type GameResponse<T> = T & { error?: string };
 
+export async function readGameResponse<T>(response: Response): Promise<GameResponse<T>> {
+  const raw = await response.text();
+  const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+  let data: GameResponse<T> | undefined;
+  if (raw.trim() && (contentType.includes("json") || raw.trim().startsWith("{") || raw.trim().startsWith("["))) {
+    try { data = JSON.parse(raw) as GameResponse<T>; } catch { data = undefined; }
+  }
+  if (!response.ok) {
+    const fallback = raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
+    throw new Error(data?.error ?? fallback ?? "Game request failed");
+  }
+  if (!data || typeof data !== "object") throw new Error("Game service returned an invalid response");
+  return data;
+}
+
 async function request<T>(path: string, initData?: string, payload?: Record<string, unknown>): Promise<T> {
   const response = await fetch(path, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ ...(payload ?? {}), initData }),
   });
-  const data = await response.json() as GameResponse<T>;
-  if (!response.ok) throw new Error(data.error ?? "Game request failed");
-  return data as T;
+  return await readGameResponse<T>(response) as T;
 }
 
 export function getProfile(initData?: string) {
@@ -146,7 +160,5 @@ export type LeaderboardRow = { rank: number; score: number; player: { id?: strin
 
 export async function getLeaderboard(season = "alpha-1") {
   const response = await fetch(`/api/game/leaderboard?season=${encodeURIComponent(season)}`, { headers: { accept: "application/json" } });
-  const data = await response.json() as GameResponse<{ leaderboard: LeaderboardRow[]; season: string }>;
-  if (!response.ok) throw new Error(data.error ?? "Leaderboard unavailable");
-  return data;
+  return await readGameResponse<{ leaderboard: LeaderboardRow[]; season: string }>(response);
 }

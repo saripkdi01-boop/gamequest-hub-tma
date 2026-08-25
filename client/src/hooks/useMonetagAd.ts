@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { readGameResponse } from "@/lib/game-api";
 
 type AdFormat = "rewarded" | "interstitial" | "task";
 type AdStatus = "disabled" | "ready" | "opening" | "verifying" | "pending" | "error";
-type AdIntent = { ymid: string; provider: "monetag" | "adsgram"; placement: "daily_bonus"; rewardCurrency: "relic"; rewardAmount: number; expiresAt: string; verification: "server_postback" | "provider_callback_pending" };
+export type AdQuestPlacement = "daily_bonus" | "signal_mining" | "relic_resonance";
+type AdIntent = { ymid: string; provider: "monetag" | "adsgram"; placement: AdQuestPlacement | "revive_genesis_run"; questTitle: string; questDescription: string; rewardCurrency: "xp" | "relic" | "quest_coin"; rewardAmount: number; expiresAt: string; verification: "server_postback" | "provider_callback_pending" };
 type AdsgramController = { show: () => Promise<unknown> };
 type AdsgramApi = { init: (config: { blockId: string }) => AdsgramController };
 type MonetagBridge = { showRewarded: (payload: { ymid: string; requestVar: string }) => Promise<unknown> };
@@ -60,13 +62,13 @@ export function useMonetagAd(initData?: string) {
     return controller.show();
   }, []);
 
-  const watchDailyBonus = useCallback(async () => {
+  const watchQuest = useCallback(async (placement: AdQuestPlacement) => {
     if (!enabled || !initData) throw new Error("adsNotConfigured");
     setStatus("opening");
-    const response = await fetch("/api/game/ads/intent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ initData, placement: "daily_bonus" }) });
-    const payload = await response.json() as { intent?: AdIntent; error?: string };
-    if (!response.ok || !payload.intent) { setStatus("error"); throw new Error(payload.error ?? "rewardPrepareFailed"); }
     try {
+      const response = await fetch("/api/game/ads/intent", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ initData, placement }) });
+      const payload = await readGameResponse<{ intent?: AdIntent }>(response);
+      if (!payload.intent) throw new Error("rewardPrepareFailed");
       if (payload.intent.provider === "adsgram") {
         await showAdsgram("rewarded");
         setStatus("pending");
@@ -82,11 +84,13 @@ export function useMonetagAd(initData?: string) {
     }
   }, [enabled, initData, showAdsgram]);
 
+  const watchDailyBonus = useCallback(() => watchQuest("daily_bonus"), [watchQuest]);
+
   const showRevenueAd = useCallback(async (format: Exclude<AdFormat, "rewarded">) => {
     if (!enabled || provider !== "adsgram") throw new Error("adsNotConfigured");
     setStatus("opening");
     try { await showAdsgram(format); setStatus("ready"); } catch (error) { setStatus("error"); throw error; }
   }, [enabled, provider, showAdsgram]);
 
-  return useMemo(() => ({ status, enabled, provider, supportsInterstitial: adsgramAvailable && Boolean(blockIdFor("interstitial")), supportsTasks: adsgramAvailable && Boolean(blockIdFor("task")), watchDailyBonus, showRevenueAd }), [adsgramAvailable, enabled, provider, showRevenueAd, status, watchDailyBonus]);
+  return useMemo(() => ({ status, enabled, provider, supportsInterstitial: adsgramAvailable && Boolean(blockIdFor("interstitial")), supportsTasks: adsgramAvailable && Boolean(blockIdFor("task")), watchDailyBonus, watchQuest, showRevenueAd }), [adsgramAvailable, enabled, provider, showRevenueAd, status, watchDailyBonus, watchQuest]);
 }

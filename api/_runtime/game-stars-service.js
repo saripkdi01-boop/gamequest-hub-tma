@@ -14,14 +14,24 @@ function getSupabaseServerClient() {
 // api/_lib/game/stars-service.ts
 var skuSchema = z.object({ sku: z.string().regex(/^[a-z0-9._-]{2,64}$/) });
 var payloadSchema = z.string().regex(/^questmind:[0-9a-f-]{36}:[a-z0-9._-]{2,64}$/);
+var DEFAULT_STARS_CATALOG = {
+  "energy.cell": { title: "Energy Cell", description: "Restore one energy charge for a future arena run.", amountXtr: 15, benefit: { type: "utility", item: "energy.cell", effect: "energy_plus_one" } },
+  "relic.key": { title: "Relic Key", description: "A cosmetic relic key for the Nexus collection.", amountXtr: 25, benefit: { type: "cosmetic", item: "relic.key" } },
+  "streak.sigil": { title: "Streak Sigil", description: "Protect one streak break in the next eligible run.", amountXtr: 35, benefit: { type: "utility", item: "streak.sigil", effect: "streak_shield_one" } },
+  "focus.lens": { title: "Focus Lens", description: "A focus utility for the precision arena.", amountXtr: 20, benefit: { type: "utility", item: "focus.lens", effect: "focus_boost" } },
+  "yuki.skin": { title: "Yuki Prism Skin", description: "A cosmetic prism skin for companion Yuki.", amountXtr: 75, benefit: { type: "cosmetic", item: "yuki.skin", cosmeticId: "prism" } },
+  "chain.booster": { title: "Chain Booster", description: "A cosmetic chain aura for high-combo runs.", amountXtr: 45, benefit: { type: "cosmetic", item: "chain.booster", cosmeticId: "aura" } }
+};
 function catalog() {
+  if (process.env.TELEGRAM_STARS_CATALOG_LIVE !== "true") return {};
   const raw = process.env.TELEGRAM_STARS_CATALOG_JSON;
-  if (!raw) return {};
+  if (!raw) return DEFAULT_STARS_CATALOG;
   try {
     const parsed = JSON.parse(raw);
-    return Object.fromEntries(Object.entries(parsed).filter(([, item]) => Number.isInteger(item.amountXtr) && item.amountXtr > 0 && typeof item.title === "string" && typeof item.description === "string"));
+    const valid = Object.fromEntries(Object.entries(parsed).filter(([, item]) => Number.isInteger(item.amountXtr) && item.amountXtr > 0 && typeof item.title === "string" && typeof item.description === "string"));
+    return Object.keys(valid).length ? valid : DEFAULT_STARS_CATALOG;
   } catch {
-    return {};
+    return DEFAULT_STARS_CATALOG;
   }
 }
 function botToken() {
@@ -39,6 +49,9 @@ async function telegramApi(method, body) {
   const result = await response.json();
   if (!response.ok || !result.ok) throw new Error(result.description ?? `Telegram ${method} failed`);
   return result.result;
+}
+function getPublicStarsCatalog() {
+  return Object.entries(catalog()).map(([sku, item]) => ({ sku, title: item.title, description: item.description, amountXtr: item.amountXtr, benefitType: typeof item.benefit?.type === "string" ? item.benefit.type : "digital" }));
 }
 async function createStarsInvoiceLink(player, rawInput) {
   const { sku } = skuSchema.parse(rawInput);
@@ -89,12 +102,13 @@ async function recordStarsSuccessfulPayment(message) {
   const { error } = await supabase.from("telegram_star_orders").update({ status: "paid", telegram_payment_charge_id: payment.telegram_payment_charge_id, paid_at: (/* @__PURE__ */ new Date()).toISOString(), updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("order_id", orderId).eq("status", "created");
   if (error) throw new Error(error.message);
   const item = catalog()[sku];
-  const { error: entitlementError } = await supabase.from("telegram_star_entitlements").insert({ order_id: orderId, player_id: order.player_id, sku, benefit_json: item?.benefit ?? {} });
-  if (entitlementError && entitlementError.code !== "23505") throw new Error(entitlementError.message);
-  return { accepted: true, duplicate: false, orderId, sku };
+  const { data: grantResult, error: grantError } = await supabase.rpc("grant_stars_item", { p_order_id: orderId, p_player_id: order.player_id, p_item_key: sku, p_benefit_json: item?.benefit ?? {} });
+  if (grantError || !grantResult) throw new Error(grantError?.message ?? "Unable to grant Stars item");
+  return { accepted: true, duplicate: false, orderId, sku, inventory: grantResult };
 }
 export {
   answerStarsPreCheckout,
   createStarsInvoiceLink,
+  getPublicStarsCatalog,
   recordStarsSuccessfulPayment
 };

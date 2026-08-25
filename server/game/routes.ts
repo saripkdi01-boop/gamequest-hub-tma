@@ -3,6 +3,7 @@ import { authenticateGameRequest, gameErrorStatus, sendJson } from "./http";
 import { getGameDashboard, getLeaderboard, startGenesisRun, submitGenesisChoice } from "./service";
 import { startQuiz, submitQuizAnswer } from "./quiz-service";
 import { getPlayerProfile, updatePlayerLanguage } from "./profile-service";
+import { createStarsInvoiceLink, getPublicStarsCatalog } from "./stars-service";
 
 function adapt(request: Request) {
   return request as unknown as Parameters<typeof authenticateGameRequest>[0];
@@ -42,6 +43,14 @@ export function registerGameRoutes(app: Express) {
       }
       if (body.action === "language") {
         response.status(200).json({ preference: await updatePlayerLanguage(player, body) });
+        return;
+      }
+      if (body.action === "stars_catalog") {
+        response.status(200).json({ catalog: getPublicStarsCatalog() });
+        return;
+      }
+      if (body.action === "stars_invoice") {
+        response.status(200).json({ invoice: await createStarsInvoiceLink(player, body) });
         return;
       }
       const dashboard = await getGameDashboard(player);

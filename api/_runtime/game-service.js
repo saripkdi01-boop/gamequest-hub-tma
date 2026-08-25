@@ -1,50 +1,21 @@
-// server/game/service.ts
+// api/_lib/game/service.ts
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 
-// server/supabase.ts
+// api/_lib/supabase.ts
 import { createClient } from "@supabase/supabase-js";
 function getSupabaseServerClient() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_KEY;
   if (!url || !key) throw new Error("Supabase server credentials are not configured");
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false }
-  });
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
-// server/game/engine.ts
+// api/_lib/game/engine.ts
 var GENESIS_CHECKPOINTS = [
-  {
-    index: 0,
-    title: "The Signal Ridge",
-    narrative: "A fractured beacon is broadcasting from the ridge. Choose how to approach its unstable signal.",
-    choices: [
-      { id: "scan", title: "Scan the beacon", description: "Map the safe route before moving.", momentum: 2 },
-      { id: "rush", title: "Rush the ridge", description: "Move fast and claim the high ground.", momentum: 1 },
-      { id: "salvage", title: "Salvage nearby parts", description: "Trade speed for a sturdier path.", momentum: 0 }
-    ]
-  },
-  {
-    index: 1,
-    title: "The Glass Crossing",
-    narrative: "The route divides over a field of mirrored glass. Every move changes the map ahead.",
-    choices: [
-      { id: "anchor", title: "Set an anchor line", description: "A deliberate route keeps the team steady.", momentum: 2 },
-      { id: "drift", title: "Follow the light", description: "A fast route, but the terrain may shift.", momentum: 1 },
-      { id: "detour", title: "Take the quiet detour", description: "Lose time to preserve your resources.", momentum: 0 }
-    ]
-  },
-  {
-    index: 2,
-    title: "The Relic Gate",
-    narrative: "The gate opens for a Pathfinder willing to commit to a final approach.",
-    choices: [
-      { id: "align", title: "Align the signal", description: "Use the route data to open the gate precisely.", momentum: 2 },
-      { id: "override", title: "Override the lock", description: "Force a quick opening at moderate risk.", momentum: 1 },
-      { id: "stabilize", title: "Stabilize the core", description: "Protect the route before taking the relic.", momentum: 0 }
-    ]
-  }
+  { index: 0, title: "The Signal Ridge", narrative: "A fractured beacon is broadcasting from the ridge. Choose how to approach its unstable signal.", choices: [{ id: "scan", title: "Scan the beacon", description: "Map the safe route before moving.", momentum: 2 }, { id: "rush", title: "Rush the ridge", description: "Move fast and claim the high ground.", momentum: 1 }, { id: "salvage", title: "Salvage nearby parts", description: "Trade speed for a sturdier path.", momentum: 0 }] },
+  { index: 1, title: "The Glass Crossing", narrative: "The route divides over a field of mirrored glass. Every move changes the map ahead.", choices: [{ id: "anchor", title: "Set an anchor line", description: "A deliberate route keeps the team steady.", momentum: 2 }, { id: "drift", title: "Follow the light", description: "A fast route, but the terrain may shift.", momentum: 1 }, { id: "detour", title: "Take the quiet detour", description: "Lose time to preserve your resources.", momentum: 0 }] },
+  { index: 2, title: "The Relic Gate", narrative: "The gate opens for a Pathfinder willing to commit to a final approach.", choices: [{ id: "align", title: "Align the signal", description: "Use the route data to open the gate precisely.", momentum: 2 }, { id: "override", title: "Override the lock", description: "Force a quick opening at moderate risk.", momentum: 1 }, { id: "stabilize", title: "Stabilize the core", description: "Protect the route before taking the relic.", momentum: 0 }] }
 ];
 function initialGenesisProgress() {
   return { checkpointIndex: 0, momentum: 0, history: [] };
@@ -59,11 +30,7 @@ function resolveChoice(seed, progress, choiceId) {
   if (!choice) throw new Error("Invalid checkpoint choice");
   const deterministicRisk = hashSeed(`${seed}:${checkpoint.index}:${choiceId}`) % 3 - 1;
   const momentum = progress.momentum + choice.momentum + deterministicRisk;
-  return {
-    checkpointIndex: progress.checkpointIndex + 1,
-    momentum,
-    history: [...progress.history, { checkpoint: checkpoint.index, choiceId, momentum }]
-  };
+  return { checkpointIndex: progress.checkpointIndex + 1, momentum, history: [...progress.history, { checkpoint: checkpoint.index, choiceId, momentum }] };
 }
 function hashSeed(value) {
   let hash = 2166136261;
@@ -81,7 +48,7 @@ function experienceToNextLevel(experience) {
   return Math.max(0, (nextLevel - 1) ** 2 * 100 - experience);
 }
 
-// server/game/service.ts
+// api/_lib/game/service.ts
 var startQuestSchema = z.object({ questSlug: z.literal("genesis-run") });
 var choiceSchema = z.object({ runId: z.string().uuid(), choiceId: z.string().min(1).max(32) });
 function todayUtc() {
@@ -97,13 +64,14 @@ function asProgress(value) {
 }
 async function getGameDashboard(player) {
   const supabase = getSupabaseServerClient();
-  const [{ data: quest, error: questError }, { data: activeRun, error: runError }, { data: daily, error: dailyError }] = await Promise.all([
+  const [{ data: quest, error: questError }, { data: activeRun, error: runError }, { data: daily, error: dailyError }, { data: inventory, error: inventoryError }] = await Promise.all([
     supabase.from("quests").select("id,title,description,reward_xp,reward_relics").eq("slug", "genesis-run").eq("active", true).single(),
     supabase.from("player_quests").select("id,status,progress_json,quest_id").eq("player_id", player.id).eq("status", "active").order("started_at", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("daily_player_stats").select("completed_quests,rewarded_ads_count,correct_answers,qc_emitted,daily_score").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle()
+    supabase.from("daily_player_stats").select("completed_quests,rewarded_ads_count,correct_answers,qc_emitted,daily_score").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle(),
+    supabase.from("player_item_inventory").select("item_key,quantity").eq("player_id", player.id).order("item_key", { ascending: true })
   ]);
   if (questError || !quest) throw new Error(questError?.message ?? "Genesis Run is unavailable");
-  if (runError || dailyError) throw new Error(runError?.message ?? dailyError?.message ?? "Unable to load game state");
+  if (runError || dailyError || inventoryError) throw new Error(runError?.message ?? dailyError?.message ?? inventoryError?.message ?? "Unable to load game state");
   const progress = activeRun ? asProgress(activeRun.progress_json) : initialGenesisProgress();
   return {
     player: {
@@ -130,7 +98,8 @@ async function getGameDashboard(player) {
       rewardRelics: quest.reward_relics,
       checkpointIndex: progress.checkpointIndex
     },
-    daily: { completedQuests: daily?.completed_quests ?? 0, rewardedAdsCount: daily?.rewarded_ads_count ?? 0, correctAnswers: daily?.correct_answers ?? 0, qcEmitted: daily?.qc_emitted ?? 0, dailyScore: daily?.daily_score ?? 0 }
+    daily: { completedQuests: daily?.completed_quests ?? 0, rewardedAdsCount: daily?.rewarded_ads_count ?? 0, correctAnswers: daily?.correct_answers ?? 0, qcEmitted: daily?.qc_emitted ?? 0, dailyScore: daily?.daily_score ?? 0 },
+    inventory: (inventory ?? []).map((item) => ({ itemKey: item.item_key, quantity: item.quantity }))
   };
 }
 async function startGenesisRun(player, rawInput) {

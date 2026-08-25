@@ -46,6 +46,7 @@ export type GameDashboard = {
     checkpointIndex: number;
   };
   daily: { completedQuests: number; rewardedAdsCount: number; correctAnswers: number; qcEmitted: number; dailyScore: number };
+  inventory: Array<{ itemKey: string; quantity: number }>;
 };
 
 export type RunUpdate = {

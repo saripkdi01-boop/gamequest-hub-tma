@@ -16,7 +16,12 @@ type SceneOptions = { onGateFocus: (gateIndex: number) => void };
 type NexusGate = Mesh & { gateIndex?: number };
 
 export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement, options: SceneOptions): Promise<GameHandle> {
+  const device = navigator as Navigator & { deviceMemory?: number };
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+  const lowPower = (device.deviceMemory ?? 4) <= 2 || (device.hardwareConcurrency ?? 4) <= 4;
+  if (lowPower) engine.setHardwareScalingLevel(Math.max(engine.getHardwareScalingLevel(), 1.35));
   const scene = new Scene(engine);
+  scene.skipPointerMovePicking = true;
   scene.clearColor = new Color4(0.025, 0.02, 0.075, 1);
   scene.fogMode = Scene.FOGMODE_EXP2;
   scene.fogDensity = 0.014;
@@ -45,8 +50,8 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement,
   questLight.intensity = 1.7;
   questLight.range = 11;
 
-  const glow = new GlowLayer("nexus-glow", scene, { blurKernelSize: 32 });
-  glow.intensity = 0.72;
+  const glow = new GlowLayer("nexus-glow", scene, { blurKernelSize: lowPower ? 16 : 32 });
+  glow.intensity = lowPower ? 0.46 : 0.72;
 
   const voidMat = material("void", "#09071d", scene);
   const rockMat = material("ancient-rock", "#1c2045", scene);
@@ -68,7 +73,7 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement,
   abyss.material = voidMat;
 
   const islands = buildFloatingIsland(scene, rockMat, rockEdgeMat, routeMat);
-  const starDust = buildStarDust(scene, cyanSoft, violet, gold);
+  const starDust = buildStarDust(scene, cyanSoft, violet, gold, lowPower ? 10 : 18);
   const portal = buildPortal(scene, cyan, cyanSoft, rockEdgeMat, gold);
   const gates: NexusGate[] = [
     buildBeaconGate(scene, new Vector3(0, 0.25, -0.3), cyan) as NexusGate,
@@ -84,8 +89,8 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement,
   });
 
   const companion = buildCompanion(scene, ivory, hair, cape, dark, cyan);
-  const crystals = buildCrystals(scene, cyan, violet, gold);
-  const orbitRunes = buildOrbitRunes(scene, gold, cyanSoft);
+  const crystals = buildCrystals(scene, cyan, violet, gold, lowPower ? 4 : 6);
+  const orbitRunes = buildOrbitRunes(scene, gold, cyanSoft, lowPower ? 2 : 4);
 
   let routeState: ExploreRouteState = { checkpointIndex: 0, focusedGate: null };
   const applyRouteState = (state: ExploreRouteState) => {
@@ -106,6 +111,7 @@ export async function createGameScene(engine: Engine, canvas: HTMLCanvasElement,
     if (typeof index === "number" && index === routeState.checkpointIndex) options.onGateFocus(index);
   });
   const tickObserver = scene.onBeforeRenderObservable.add(() => {
+    if (reducedMotion) return;
     const time = performance.now() / 1000;
     const pulse = 1 + Math.sin(time * 2.1) * 0.055;
     portal.core.scaling.setAll(pulse);
@@ -269,8 +275,8 @@ function buildCompanion(scene: Scene, ivory: StandardMaterial, hair: StandardMat
   return { root, body, orb };
 }
 
-function buildCrystals(scene: Scene, cyan: StandardMaterial, violet: StandardMaterial, gold: StandardMaterial) {
-  const points: Array<[number, number, number]> = [[-2.5, 0.58, -2.2], [2.3, 0.7, -1.2], [-2.55, 0.55, 3.9], [2.55, 0.64, 5.3], [-1.9, 0.52, 8.5], [2.1, 0.58, 10.1]];
+function buildCrystals(scene: Scene, cyan: StandardMaterial, violet: StandardMaterial, gold: StandardMaterial, count = 6) {
+  const points = ([[-2.5, 0.58, -2.2], [2.3, 0.7, -1.2], [-2.55, 0.55, 3.9], [2.55, 0.64, 5.3], [-1.9, 0.52, 8.5], [2.1, 0.58, 10.1]] as Array<[number, number, number]>).slice(0, count);
   return points.map(([x, y, z], index) => {
     const crystal = MeshBuilder.CreatePolyhedron(`nexus-crystal-${index}`, { type: 1, size: 0.48 + (index % 2) * 0.14 }, scene);
     crystal.position = new Vector3(x, y, z);
@@ -281,8 +287,8 @@ function buildCrystals(scene: Scene, cyan: StandardMaterial, violet: StandardMat
   });
 }
 
-function buildOrbitRunes(scene: Scene, gold: StandardMaterial, cyan: StandardMaterial) {
-  return [-1, 1, -1, 1].map((side, index) => {
+function buildOrbitRunes(scene: Scene, gold: StandardMaterial, cyan: StandardMaterial, count = 4) {
+  return [-1, 1, -1, 1].slice(0, count).map((side, index) => {
     const rune = MeshBuilder.CreateTorus(`orbit-rune-${index}`, { diameter: 0.78, thickness: 0.055, tessellation: 16 }, scene);
     rune.position = new Vector3(side * (3.5 + index * 0.25), 1.5 + (index % 2) * 0.75, index * 3.8 - 2.2);
     rune.rotation = new Vector3(Math.PI / 2, 0.3 * side, 0);
@@ -292,9 +298,9 @@ function buildOrbitRunes(scene: Scene, gold: StandardMaterial, cyan: StandardMat
   });
 }
 
-function buildStarDust(scene: Scene, cyan: StandardMaterial, violet: StandardMaterial, gold: StandardMaterial) {
+function buildStarDust(scene: Scene, cyan: StandardMaterial, violet: StandardMaterial, gold: StandardMaterial, count = 18) {
   const dust: Mesh[] = [];
-  for (let index = 0; index < 18; index += 1) {
+  for (let index = 0; index < count; index += 1) {
     const star = MeshBuilder.CreateIcoSphere(`star-dust-${index}`, { radius: 0.035 + (index % 3) * 0.018, subdivisions: 1 }, scene);
     const angle = index * 2.399;
     const radius = 4.7 + (index % 4) * 1.2;

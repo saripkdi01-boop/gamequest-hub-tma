@@ -12,16 +12,14 @@ function getSupabaseServerClient() {
 }
 
 // api/_lib/game/ad-service.ts
-var intentSchema = z.object({ placement: z.literal("daily_bonus") });
-var postbackSchema = z.object({
-  ymid: z.string().uuid(),
-  event_type: z.string().min(1).max(32),
-  reward_event_type: z.string().optional(),
-  zone_id: z.string().optional(),
-  sub_zone_id: z.string().optional(),
-  telegram_id: z.string().optional(),
-  estimated_price: z.string().optional()
-});
+var AD_QUESTS = {
+  daily_bonus: { title: "Daily relic cache", description: "Watch one verified sponsor signal to unlock relics.", rewardCurrency: "relic", rewardAmount: 5 },
+  revive_genesis_run: { title: "Genesis revive", description: "Recover one failed route attempt after a verified sponsor signal.", rewardCurrency: "relic", rewardAmount: 2 },
+  signal_mining: { title: "Signal mining", description: "Mine Quest Coins from a verified sponsor signal.", rewardCurrency: "quest_coin", rewardAmount: 60 },
+  relic_resonance: { title: "Relic resonance", description: "Tune the Nexus and earn a small relic cache.", rewardCurrency: "relic", rewardAmount: 2 }
+};
+var intentSchema = z.object({ placement: z.enum(["daily_bonus", "revive_genesis_run", "signal_mining", "relic_resonance"]).default("daily_bonus") });
+var postbackSchema = z.object({ ymid: z.string().uuid(), event_type: z.string().min(1).max(32), reward_event_type: z.string().optional(), zone_id: z.string().optional(), sub_zone_id: z.string().optional(), telegram_id: z.string().optional(), estimated_price: z.string().optional() });
 var DAILY_AD_CAP = 3;
 var AD_COOLDOWN_MS = 10 * 60 * 1e3;
 function configuredRewardAdProvider() {
@@ -42,33 +40,26 @@ function canCreateRewardedIntent(dailyCount, lastIntentAt, now = Date.now()) {
 function isEligibleRewardedPostback(input, expectedZone) {
   return Boolean(expectedZone && input.rewardEventType === "valued" && input.eventType === "impression" && input.zoneId === expectedZone);
 }
-async function createDailyBonusIntent(player, rawInput) {
-  intentSchema.parse(rawInput);
+async function createRewardedAdIntent(player, rawInput) {
+  const { placement } = intentSchema.parse(rawInput);
   const provider = configuredRewardAdProvider();
   if (!provider) throw new Error("Rewarded ads are not configured");
+  const definition = AD_QUESTS[placement];
   const supabase = getSupabaseServerClient();
   const now = /* @__PURE__ */ new Date();
   const { data: daily, error: dailyError } = await supabase.from("daily_player_stats").select("rewarded_ads_count").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle();
   if (dailyError) throw new Error(dailyError.message);
   const cutoff = new Date(now.getTime() - AD_COOLDOWN_MS).toISOString();
-  const { data: recent, error: recentError } = await supabase.from("ad_reward_intents").select("created_at").eq("player_id", player.id).eq("placement", "daily_bonus").gte("created_at", cutoff).order("created_at", { ascending: false }).limit(1);
+  const { data: recent, error: recentError } = await supabase.from("ad_reward_intents").select("created_at").eq("player_id", player.id).in("placement", Object.keys(AD_QUESTS)).gte("created_at", cutoff).order("created_at", { ascending: false }).limit(1);
   if (recentError) throw new Error(recentError.message);
-  if (!canCreateRewardedIntent(daily?.rewarded_ads_count ?? 0, recent?.[0]?.created_at ?? null, now.getTime())) {
-    throw new Error((daily?.rewarded_ads_count ?? 0) >= DAILY_AD_CAP ? "Daily rewarded-ad limit reached" : "Reward vault is cooling down");
-  }
+  if (!canCreateRewardedIntent(daily?.rewarded_ads_count ?? 0, recent?.[0]?.created_at ?? null, now.getTime())) throw new Error((daily?.rewarded_ads_count ?? 0) >= DAILY_AD_CAP ? "Daily rewarded-ad limit reached" : "Reward vault is cooling down");
   const ymid = randomUUID();
-  const { error } = await supabase.from("ad_reward_intents").insert({
-    ymid,
-    player_id: player.id,
-    provider,
-    placement: "daily_bonus",
-    reward_currency: "relic",
-    reward_amount: 5,
-    expires_at: new Date(now.getTime() + 10 * 60 * 1e3).toISOString()
-  });
+  const expiresAt = new Date(now.getTime() + 10 * 60 * 1e3).toISOString();
+  const { error } = await supabase.from("ad_reward_intents").insert({ ymid, player_id: player.id, provider, placement, reward_currency: definition.rewardCurrency, reward_amount: definition.rewardAmount, expires_at: expiresAt });
   if (error) throw new Error(error.message);
-  return { ymid, provider, placement: "daily_bonus", rewardCurrency: "relic", rewardAmount: 5, expiresAt: new Date(now.getTime() + 10 * 60 * 1e3).toISOString(), verification: provider === "monetag" ? "server_postback" : "provider_callback_pending" };
+  return { ymid, provider, placement, questTitle: definition.title, questDescription: definition.description, rewardCurrency: definition.rewardCurrency, rewardAmount: definition.rewardAmount, expiresAt, verification: provider === "monetag" ? "server_postback" : "provider_callback_pending" };
 }
+var createDailyBonusIntent = createRewardedAdIntent;
 async function processMonetagPostback(rawInput) {
   const input = postbackSchema.parse(rawInput);
   const supabase = getSupabaseServerClient();
@@ -98,12 +89,13 @@ async function processMonetagPostback(rawInput) {
   const { data: rewardResult, error: rewardError } = await supabase.rpc("grant_ad_reward", { p_ymid: intent.ymid });
   if (rewardError || !rewardResult) throw new Error(rewardError?.message ?? "Unable to grant rewarded-ad bonus");
   const result = rewardResult;
-  return { accepted: true, duplicate: result.duplicate, rewarded: result.rewarded };
+  return { accepted: true, duplicate: result.duplicate, rewarded: result.rewarded, currency: result.currency, amount: result.amount };
 }
 export {
   canCreateRewardedIntent,
   configuredRewardAdProvider,
   createDailyBonusIntent,
+  createRewardedAdIntent,
   isEligibleRewardedPostback,
   processMonetagPostback
 };
