@@ -1,0 +1,260 @@
+/* ==========================================================================
+   GameQuestHub — "Quest Nexus" visual system
+   Drop-in 3D-depth theme for the Telegram Mini App.
+   No dependencies. Pure CSS. GPU-cheap (works on low-end Android WebViews).
+   ========================================================================== */
+
+:root {
+  /* -- Palette -------------------------------------------------------- */
+  --gq-bg-void: #120e1f;
+  --gq-bg-void-2: #1a1430;
+  --gq-bg-surface: #1c1730;
+  --gq-glass-fill: rgba(255, 255, 255, 0.06);
+  --gq-glass-fill-strong: rgba(255, 255, 255, 0.1);
+  --gq-glass-border: rgba(255, 255, 255, 0.14);
+
+  --gq-accent-portal: #4ce0c4;      /* companion energy / active state */
+  --gq-accent-portal-dark: #1f8f7a; /* shadow/"keycap" shade for portal buttons */
+  --gq-accent-quest: #f5b942;       /* reward, gold, success */
+  --gq-accent-quest-dark: #a5730f;
+  --gq-accent-danger: #ff6b6b;      /* fail state, sparingly */
+  --gq-accent-danger-dark: #a53a3a;
+
+  --gq-text-primary: #f4f2fa;
+  --gq-text-muted: #9c95b8;
+
+  --gq-radius-lg: 24px;
+  --gq-radius-md: 16px;
+  --gq-radius-sm: 10px;
+
+  --gq-font-display: "Baloo 2", ui-rounded, system-ui, sans-serif;
+  --gq-font-body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+}
+
+/* -- Base scene: establishes the 3D space everything else presses into -- */
+.gq-scene {
+  position: relative;
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 60% at 50% -10%, #241a44 0%, transparent 60%),
+    linear-gradient(180deg, var(--gq-bg-void) 0%, var(--gq-bg-void-2) 100%);
+  color: var(--gq-text-primary);
+  font-family: var(--gq-font-body);
+  perspective: 1000px;
+  overflow-x: hidden;
+}
+
+.gq-particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.gq-layer {
+  position: relative;
+  z-index: 1;
+}
+
+/* -- Glass panels ----------------------------------------------------- */
+.gq-glass {
+  background: var(--gq-glass-fill);
+  border: 1px solid var(--gq-glass-border);
+  border-radius: var(--gq-radius-lg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 20px 40px rgba(0, 0, 0, 0.35);
+}
+
+.gq-glass-strong {
+  background: var(--gq-glass-fill-strong);
+}
+
+/* -- Typography --------------------------------------------------------*/
+.gq-display {
+  font-family: var(--gq-font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.gq-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.gq-muted {
+  color: var(--gq-text-muted);
+}
+
+/* ==========================================================================
+   3D-press buttons ("keycap" technique)
+   Layered box-shadow = perceived depth. translateY on press = the button
+   physically sinks. This reads as "real" 3D without any WebGL cost.
+   ========================================================================== */
+
+.btn-3d {
+  --btn-face: var(--gq-accent-portal);
+  --btn-depth: var(--gq-accent-portal-dark);
+  position: relative;
+  border: none;
+  cursor: pointer;
+  font-family: var(--gq-font-display);
+  font-weight: 700;
+  color: #0d1614;
+  background: var(--btn-face);
+  border-radius: var(--gq-radius-md);
+  padding: 16px 28px;
+  transform: translateY(0) translateZ(0);
+  box-shadow:
+    0 6px 0 var(--btn-depth),
+    0 12px 24px rgba(0, 0, 0, 0.45);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.btn-3d:active,
+.btn-3d.is-pressed {
+  transform: translateY(5px) translateZ(-5px);
+  box-shadow:
+    0 1px 0 var(--btn-depth),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.btn-3d:disabled {
+  filter: grayscale(0.6) brightness(0.7);
+  cursor: not-allowed;
+}
+
+.btn-3d.btn-quest {
+  --btn-face: var(--gq-accent-quest);
+  --btn-depth: var(--gq-accent-quest-dark);
+}
+
+.btn-3d.btn-ghost {
+  --btn-face: #2a2447;
+  --btn-depth: #14112a;
+  color: var(--gq-text-primary);
+}
+
+/* Ripple element injected on press by companion-character.js (optional) */
+.gq-press-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.55), transparent 70%);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  animation: gq-ripple 0.5s ease-out forwards;
+}
+
+@keyframes gq-ripple {
+  to {
+    transform: translate(-50%, -50%) scale(3.2);
+    opacity: 0;
+  }
+}
+
+/* -- Glow utilities ------------------------------------------------------*/
+.gq-glow-portal {
+  box-shadow: 0 0 24px 2px rgba(76, 224, 196, 0.45);
+}
+.gq-glow-quest {
+  box-shadow: 0 0 24px 2px rgba(245, 185, 66, 0.45);
+}
+
+/* -- Tilt-on-hover card (desktop/pointer devices only) --------------------*/
+@media (hover: hover) and (pointer: fine) {
+  .gq-tilt {
+    transition: transform 0.15s ease;
+    transform-style: preserve-3d;
+  }
+  .gq-tilt:hover {
+    transform: rotateX(4deg) rotateY(-4deg) translateZ(6px);
+  }
+}
+
+/* ==========================================================================
+   Companion animation keyframes
+   (class names referenced by companion-character.js)
+   ========================================================================== */
+
+@keyframes gq-bob {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(-10px) rotate(1deg); }
+}
+@keyframes gq-blink {
+  0%, 88%, 100% { transform: scaleY(1); }
+  92%           { transform: scaleY(0.08); }
+}
+@keyframes gq-squash {
+  0%   { transform: scale(1, 1); }
+  35%  { transform: scale(1.18, 0.8); }
+  100% { transform: scale(1, 1); }
+}
+@keyframes gq-cheer {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-18px) scale(1.12); }
+  55%  { transform: translateY(2px) scale(0.96); }
+  100% { transform: translateY(0) scale(1); }
+}
+@keyframes gq-arm-wave {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-40deg); }
+}
+@keyframes gq-shake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25%      { transform: translateX(-6px) rotate(-4deg); }
+  75%      { transform: translateX(6px) rotate(4deg); }
+}
+@keyframes gq-pop-fade {
+  0%   { transform: translateY(0) scale(0.6); opacity: 1; }
+  100% { transform: translateY(-40px) scale(1.1); opacity: 0; }
+}
+@keyframes gq-core-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.9; }
+}
+
+.gq-companion { position: relative; width: 130px; height: 160px; margin: 0 auto; filter: drop-shadow(0 14px 18px rgba(0,0,0,.45)); }
+.gq-companion .yuki-svg { width: 100%; height: 100%; overflow: visible; }
+.yuki-body                         { transform-box: fill-box; transform-origin: center; }
+.gq-companion-idle .yuki-body      { animation: gq-bob 3.4s ease-in-out infinite; }
+.gq-companion-idle .yuki-core      { animation: gq-core-pulse 2.4s ease-in-out infinite; }
+.yuki-eye-l, .yuki-eye-r           { transform-box: fill-box; transform-origin: center; }
+.yuki-blink .yuki-eye-l,
+.yuki-blink .yuki-eye-r            { animation: gq-blink 0.32s ease-in-out; }
+
+.gq-companion-press .yuki-body     { animation: gq-squash 0.28s ease-out; }
+.gq-companion-success .yuki-body   { animation: gq-cheer 0.7s cubic-bezier(.34,1.56,.64,1); }
+.gq-companion-fail .yuki-body      { animation: gq-shake 0.5s ease-in-out; }
+.yuki-arm-l, .yuki-arm-r           { transform-box: fill-box; }
+.gq-companion-success .yuki-arm-l  { transform-origin: top right; animation: gq-arm-wave 0.6s ease-in-out 2; }
+.gq-companion-success .yuki-arm-r  { transform-origin: top left; animation: gq-arm-wave 0.6s ease-in-out 2 reverse; }
+
+.gq-sparkle {
+  position: absolute;
+  pointer-events: none;
+  animation: gq-pop-fade 0.9s ease-out forwards;
+  font-size: 18px;
+}
+
+/* -- Accessibility: respect reduced-motion, keep functional feedback only */
+@media (prefers-reduced-motion: reduce) {
+  .gq-companion-idle .yuki-body,
+  .gq-companion-idle .yuki-core,
+  .gq-blink .yuki-eye-l,
+  .gq-blink .yuki-eye-r,
+  .gq-sparkle {
+    animation: none !important;
+  }
+  .btn-3d {
+    transition: box-shadow 0.1s ease;
+  }
+}
+
+/* -- Focus visibility (quality floor) ---------------------------------- */
+.btn-3d:focus-visible {
+  outline: 2px solid var(--gq-text-primary);
+  outline-offset: 3px;
+}

@@ -33,6 +33,7 @@ export type TelegramWebApp = {
     onClick: (callback: () => void) => void;
     offClick: (callback: () => void) => void;
   };
+  openInvoice?: (url: string, callback?: (status: string) => void) => void;
   BackButton?: {
     show: () => void;
     hide: () => void;

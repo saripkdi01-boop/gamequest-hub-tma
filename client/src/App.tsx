@@ -15,10 +15,14 @@ import { I18nProvider, useI18n } from "./i18n";
 
 const ExploreRoute = lazy(() => import("./pages/ExploreRoute"));
 const QuizArena = lazy(() => import("./pages/QuizArena"));
+const WalletRoute = lazy(() => import("./pages/WalletRoute"));
+const StarsStoreRoute = lazy(() => import("./pages/StarsStoreRoute"));
 
 function RouteLoading({ label }: { label: "exploreRoute" | "chooseArena" }) { const { t } = useI18n(); return <div className="game-shell grid min-h-[100dvh] place-items-center font-mono text-[10px] uppercase tracking-[.14em] text-[#d7fb70]">{t("loading")} · {t(label)}…</div>; }
 function ExploreRouteRoute() { return <Suspense fallback={<RouteLoading label="exploreRoute" />}><ExploreRoute /></Suspense>; }
 function QuizArenaRoute() { return <Suspense fallback={<RouteLoading label="chooseArena" />}><QuizArena /></Suspense>; }
+function WalletRouteRoute() { return <Suspense fallback={<RouteLoading label="exploreRoute" />}><WalletRoute /></Suspense>; }
+function StarsStoreRouteRoute() { return <Suspense fallback={<RouteLoading label="exploreRoute" />}><StarsStoreRoute /></Suspense>; }
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -32,6 +36,8 @@ function Router() {
       <Route path={"/leaderboard"} component={Leaderboard} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/bonus"} component={RewardBonus} />
+      <Route path={"/wallet"} component={WalletRouteRoute} />
+      <Route path={"/stars"} component={StarsStoreRouteRoute} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

@@ -15,6 +15,15 @@ const postbackSchema = z.object({
 
 const DAILY_AD_CAP = 3;
 const AD_COOLDOWN_MS = 10 * 60 * 1000;
+export type RewardAdProvider = "monetag" | "adsgram";
+
+export function configuredRewardAdProvider(): RewardAdProvider | null {
+  if (process.env.ADS_ENABLED !== "true" && process.env.VITE_ADS_ENABLED !== "true") return null;
+  const provider = process.env.ADS_PROVIDER ?? process.env.VITE_ADS_PROVIDER ?? "monetag";
+  if (provider === "adsgram" && (process.env.ADSGRAM_BLOCK_ID || process.env.VITE_ADSGRAM_BLOCK_ID)) return "adsgram";
+  if (provider === "monetag" && process.env.VITE_MONETAG_ZONE_ID) return "monetag";
+  return null;
+}
 
 function todayUtc() { return new Date().toISOString().slice(0, 10); }
 
@@ -30,7 +39,8 @@ export function isEligibleRewardedPostback(input: { rewardEventType?: string; ev
 
 export async function createDailyBonusIntent(player: GameQuestPlayer, rawInput: unknown) {
   intentSchema.parse(rawInput);
-  if (process.env.VITE_ADS_ENABLED !== "true" || !process.env.VITE_MONETAG_ZONE_ID) throw new Error("Rewarded ads are not configured");
+  const provider = configuredRewardAdProvider();
+  if (!provider) throw new Error("Rewarded ads are not configured");
   const supabase = getSupabaseServerClient();
   const now = new Date();
   const { data: daily, error: dailyError } = await supabase.from("daily_player_stats").select("rewarded_ads_count").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle();
@@ -46,21 +56,23 @@ export async function createDailyBonusIntent(player: GameQuestPlayer, rawInput: 
   const { error } = await supabase.from("ad_reward_intents").insert({
     ymid,
     player_id: player.id,
+    provider,
     placement: "daily_bonus",
     reward_currency: "relic",
     reward_amount: 5,
     expires_at: new Date(now.getTime() + 10 * 60 * 1000).toISOString(),
   });
   if (error) throw new Error(error.message);
-  return { ymid, placement: "daily_bonus", rewardCurrency: "relic", rewardAmount: 5, expiresAt: new Date(now.getTime() + 10 * 60 * 1000).toISOString() };
+  return { ymid, provider, placement: "daily_bonus", rewardCurrency: "relic", rewardAmount: 5, expiresAt: new Date(now.getTime() + 10 * 60 * 1000).toISOString(), verification: provider === "monetag" ? "server_postback" : "provider_callback_pending" };
 }
 
 export async function processMonetagPostback(rawInput: unknown) {
   const input = postbackSchema.parse(rawInput);
   const supabase = getSupabaseServerClient();
-  const { data: intent, error: intentError } = await supabase.from("ad_reward_intents").select("ymid,player_id,placement,reward_currency,reward_amount,status,expires_at").eq("ymid", input.ymid).maybeSingle();
+  const { data: intent, error: intentError } = await supabase.from("ad_reward_intents").select("ymid,player_id,provider,placement,reward_currency,reward_amount,status,expires_at").eq("ymid", input.ymid).maybeSingle();
   if (intentError) throw new Error(intentError.message);
   if (!intent) return { accepted: false, reason: "intent_not_found" as const };
+  if (intent.provider !== "monetag") return { accepted: false, reason: "provider_mismatch" as const };
 
   const { data: existing } = await supabase.from("ad_postbacks").select("id").eq("ymid", input.ymid).eq("event_type", input.event_type).eq("reward_event_type", input.reward_event_type ?? null).maybeSingle();
   if (existing) return { accepted: true, duplicate: true, rewarded: false };
@@ -85,7 +97,7 @@ export async function processMonetagPostback(rawInput: unknown) {
     return { accepted: true, duplicate: false, rewarded: false };
   }
 
-  const { data: rewardResult, error: rewardError } = await supabase.rpc("grant_monetag_reward", { p_ymid: intent.ymid });
+  const { data: rewardResult, error: rewardError } = await supabase.rpc("grant_ad_reward", { p_ymid: intent.ymid });
   if (rewardError || !rewardResult) throw new Error(rewardError?.message ?? "Unable to grant rewarded-ad bonus");
   const result = rewardResult as { rewarded: boolean; duplicate: boolean };
   return { accepted: true, duplicate: result.duplicate, rewarded: result.rewarded };

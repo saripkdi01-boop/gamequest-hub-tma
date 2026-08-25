@@ -1,8 +1,10 @@
 import { timingSafeEqual } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { answerStarsPreCheckout, recordStarsSuccessfulPayment } from "../_lib/game/stars-service";
 
 type TelegramUpdate = {
-  message?: { text?: string; chat?: { id?: number } };
+  message?: { text?: string; chat?: { id?: number }; from?: { id?: number }; successful_payment?: { invoice_payload?: string; telegram_payment_charge_id?: string; total_amount?: number; currency?: string } };
+  pre_checkout_query?: { id: string; from?: { id?: number }; currency?: string; total_amount?: number; invoice_payload?: string };
 };
 
 type ApiRequest = IncomingMessage & { body?: unknown };
@@ -61,6 +63,16 @@ export default async function handler(request: ApiRequest, response: ServerRespo
 
   try {
     const update = await readBody(request);
+    if (update.pre_checkout_query) {
+      await answerStarsPreCheckout(update.pre_checkout_query);
+      console.info("[Telegram] answered Stars pre-checkout query");
+      return sendJson(response, 200, { ok: true });
+    }
+    if (update.message?.successful_payment) {
+      const paymentResult = await recordStarsSuccessfulPayment({ from: update.message.from, successful_payment: update.message.successful_payment });
+      console.info(`[Telegram] recorded Stars payment ${paymentResult.orderId ?? "rejected"}`);
+      return sendJson(response, 200, { ok: true });
+    }
     const command = commandFrom(update.message?.text);
     const chatId = update.message?.chat?.id;
     if (!command || !chatId) {

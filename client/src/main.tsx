@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { startLogin } from "./const";
 import "./index.css";
+import "./components/quest-nexus/theme-3d.css";
 
 const queryClient = new QueryClient();
 
