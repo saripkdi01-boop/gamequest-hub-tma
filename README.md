@@ -45,7 +45,7 @@ Genesis Run adalah vertical slice permainan yang aktif bagi pemain Telegram terv
 | `POST /api/game/quiz/start` | Membuat sesi KNOW/CHAIN server-authoritative dan mengembalikan public question tanpa answer key. |
 | `POST /api/game/quiz/answer` | Memvalidasi jawaban, menghitung QC/XP/Mind Score/combo, lalu mencatat reward melalui RPC atomik. |
 | `POST /api/game/profile` | Mengembalikan identitas Telegram, statistik progression, preferensi bahasa, dan rank personal terautentikasi. |
-| `POST /api/game/profile/language` | Menyimpan pilihan bahasa player melalui initData yang tervalidasi dan allowlist 24 locale. |
+| `POST /api/game/profile` dengan `action: language` | Menyimpan pilihan bahasa player melalui initData yang tervalidasi dan allowlist 24 locale. Handler digabung untuk menjaga batas 12 Vercel functions pada Hobby plan. |
 
 Mode eksplorasi di-load secara lazy sehingga bundle Babylon hanya diunduh ketika pemain memilih Genesis Run; dashboard awal tetap lebih ringan untuk jaringan Telegram mobile.
 

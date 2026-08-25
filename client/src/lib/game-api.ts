@@ -119,7 +119,7 @@ export function getProfile(initData?: string) {
 }
 
 export function updateLanguage(initData: string | undefined, language: string) {
-  return request<{ preference: { language: string } }>("/api/game/profile/language", initData, { language });
+  return request<{ preference: { language: string } }>("/api/game/profile", initData, { action: "language", language });
 }
 
 export function getDashboard(initData?: string) {

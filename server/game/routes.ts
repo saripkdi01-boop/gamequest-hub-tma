@@ -11,7 +11,11 @@ function adapt(request: Request) {
 export function registerGameRoutes(app: Express) {
   app.post("/api/game/profile", async (request: Request, response: Response) => {
     try {
-      const { player } = await authenticateGameRequest(adapt(request));
+      const { player, body } = await authenticateGameRequest(adapt(request));
+      if (body.action === "language") {
+        response.status(200).json({ preference: await updatePlayerLanguage(player, body) });
+        return;
+      }
       response.status(200).json(await getPlayerProfile(player));
     } catch (error) {
       const { status, message } = gameErrorStatus(error);
