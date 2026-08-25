@@ -21,6 +21,11 @@ export type GameQuestPlayer = {
   experience: number;
   questStreak: number;
   relics: number;
+  questCoins: number;
+  mindScore: number;
+  dailyScore: number;
+  energy: number;
+  comboBest: number;
   playerStatus: "new" | "active" | "inactive";
   createdAt: string;
   updatedAt: string;
@@ -50,6 +55,11 @@ function toGameQuestPlayer(row: Record<string, unknown>): GameQuestPlayer {
     experience: Number(row.experience),
     questStreak: Number(row.quest_streak),
     relics: Number(row.relics),
+    questCoins: Number(row.quest_coins ?? 0),
+    mindScore: Number(row.mind_score ?? 0),
+    dailyScore: Number(row.daily_score ?? 0),
+    energy: Number(row.energy ?? 10),
+    comboBest: Number(row.combo_best ?? 0),
     playerStatus: row.player_status as GameQuestPlayer["playerStatus"],
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),

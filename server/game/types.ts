@@ -30,6 +30,11 @@ export type GameDashboard = {
     experienceToNextLevel: number;
     questStreak: number;
     relics: number;
+    questCoins: number;
+    mindScore: number;
+    dailyScore: number;
+    energy: number;
+    comboBest: number;
   };
   genesisRun: {
     id: string | null;
@@ -40,7 +45,7 @@ export type GameDashboard = {
     rewardRelics: number;
     checkpointIndex: number;
   };
-  daily: { completedQuests: number; rewardedAdsCount: number };
+  daily: { completedQuests: number; rewardedAdsCount: number; correctAnswers: number; qcEmitted: number; dailyScore: number };
 };
 
 export type RunUpdate = {

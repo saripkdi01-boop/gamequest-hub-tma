@@ -12,9 +12,14 @@ import Leaderboard from "./pages/Leaderboard";
 import RewardBonus from "./pages/RewardBonus";
 
 const ExploreRoute = lazy(() => import("./pages/ExploreRoute"));
+const QuizArena = lazy(() => import("./pages/QuizArena"));
 
 function ExploreRouteRoute() {
   return <Suspense fallback={<div className="game-shell grid min-h-[100dvh] place-items-center font-mono text-xs uppercase tracking-[.16em] text-[#d7fb70]">Loading exploration route…</div>}><ExploreRoute /></Suspense>;
+}
+
+function QuizArenaRoute() {
+  return <Suspense fallback={<div className="game-shell grid min-h-[100dvh] place-items-center font-mono text-xs uppercase tracking-[.16em] text-[#d7fb70]">Loading quiz arena…</div>}><QuizArena /></Suspense>;
 }
 
 function Router() {
@@ -24,6 +29,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/quest"} component={QuestRun} />
       <Route path={"/explore"} component={ExploreRouteRoute} />
+      <Route path={"/mind"} component={QuizArenaRoute} />
       <Route path={"/result"} component={QuestResult} />
       <Route path={"/leaderboard"} component={Leaderboard} />
       <Route path={"/bonus"} component={RewardBonus} />

@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { ChevronRight, Flame, Gem, MapPinned, ShieldCheck, Sparkles, Trophy } from "lucide-react";
+import { ChevronRight, Flame, Gem, Gauge, MapPinned, ShieldCheck, Sparkles, Target, Trophy } from "lucide-react";
 import { useTelegramWebApp } from "@/hooks/useTelegramWebApp";
 import { getDashboard, type Dashboard } from "@/lib/game-api";
 
 const previewDashboard: Dashboard = {
-  player: { id: "preview", firstName: "Adventurer", username: null, level: 1, experience: 0, experienceToNextLevel: 100, questStreak: 0, relics: 0 },
+  player: { id: "preview", firstName: "Adventurer", username: null, level: 1, experience: 0, experienceToNextLevel: 100, questStreak: 0, relics: 0, questCoins: 0, mindScore: 0, dailyScore: 0, energy: 10, comboBest: 0 },
   genesisRun: { id: null, status: "available", title: "Genesis Run", description: "Navigate three frontier checkpoints to secure the first relic route.", rewardXp: 25, rewardRelics: 3, checkpointIndex: 0 },
-  daily: { completedQuests: 0, rewardedAdsCount: 0 },
+  daily: { completedQuests: 0, rewardedAdsCount: 0, correctAnswers: 0, qcEmitted: 0 },
 };
 
 export default function Home() {
@@ -43,9 +43,12 @@ export default function Home() {
   }, [state.genesisRun.status, webApp, setLocation]);
 
   const statistics = [
-    { icon: Trophy, label: "Level", value: String(state.player.level).padStart(2, "0"), tint: "text-[#f7d774]" },
+    { icon: Sparkles, label: "Quest Coins", value: state.player.questCoins.toLocaleString(), tint: "text-[#d7fb70]" },
+    { icon: Trophy, label: "Mind Score", value: state.player.mindScore.toLocaleString(), tint: "text-[#f7d774]" },
     { icon: Flame, label: "Streak", value: String(state.player.questStreak), tint: "text-[#ff9a6e]" },
     { icon: Gem, label: "Relics", value: String(state.player.relics), tint: "text-[#8de4ff]" },
+    { icon: Gauge, label: "Energy", value: String(state.player.energy), tint: "text-[#8de4ff]" },
+    { icon: Target, label: "Daily Score", value: state.player.dailyScore.toLocaleString(), tint: "text-[#d7fb70]" },
   ];
 
   return (
@@ -75,13 +78,15 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-5 grid grid-cols-3 gap-3" aria-label="Statistik pemain">
+        <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Statistik pemain">
           {statistics.map(({ icon: Icon, label, value, tint }) => (
             <div key={label} className="rounded-2xl border border-white/[.09] bg-white/[.035] px-3 py-3.5"><Icon size={16} className={tint} /><p className="mt-4 font-display text-[25px] leading-none text-[#f8f5e9]">{value}</p><p className="mt-1.5 font-mono text-[9px] uppercase tracking-[.11em] text-[#8490a0]">{label}</p></div>
           ))}
         </section>
 
-        <section className="mt-9">
+        <section className="mt-8 rounded-[24px] border border-[#d7fb70]/20 bg-[#d7fb70]/[.05] p-4"><div className="flex items-center gap-3"><div className="brand-mark"><Sparkles size={18} /></div><div className="flex-1"><p className="font-mono text-[10px] uppercase tracking-[.15em] text-[#d7fb70]">QUEST//MIND</p><p className="mt-1 text-sm text-[#dce8d2]">Competitive knowledge runs are now online.</p></div><button onClick={() => setLocation("/mind")} className="rounded-xl bg-[#d7fb70] px-3 py-2 font-mono text-[9px] font-semibold uppercase tracking-[.1em] text-[#16200f]">Play</button></div></section>
+
+        <section className="mt-8">
           <div className="flex items-end justify-between"><div><p className="font-mono text-[10px] uppercase tracking-[.15em] text-[#a3b58f]">Quest board</p><h2 className="mt-1 font-display text-[28px] tracking-[-.04em] text-[#fbf8ed]">Your next move</h2></div><button onClick={() => setLocation("/leaderboard")} className="pb-1 font-mono text-[9px] uppercase tracking-[.12em] text-[#d7fb70]">Ranks</button></div>
           <article className="quest-card mt-4 rounded-[24px] border border-white/[.1] p-4">
             <div className="flex gap-4"><div className="grid h-16 w-16 shrink-0 place-items-center rounded-[19px] border border-[#d7fb70]/25 text-[#d7fb70]"><MapPinned size={29} /></div><div className="min-w-0 flex-1"><span className="rounded-full bg-[#d7fb70]/10 px-2 py-1 font-mono text-[9px] uppercase tracking-[.1em] text-[#d7fb70]">{state.genesisRun.status}</span><h3 className="mt-2 font-display text-[22px] leading-none tracking-[-.035em] text-[#fbf8ed]">{state.genesisRun.title}</h3><p className="mt-2 text-[12px] leading-relaxed text-[#9dabb8]">{state.genesisRun.description}</p></div></div>

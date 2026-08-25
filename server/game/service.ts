@@ -28,7 +28,7 @@ export async function getGameDashboard(player: GameQuestPlayer): Promise<GameDas
   const [{ data: quest, error: questError }, { data: activeRun, error: runError }, { data: daily, error: dailyError }] = await Promise.all([
     supabase.from("quests").select("id,title,description,reward_xp,reward_relics").eq("slug", "genesis-run").eq("active", true).single(),
     supabase.from("player_quests").select("id,status,progress_json,quest_id").eq("player_id", player.id).eq("status", "active").order("started_at", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("daily_player_stats").select("completed_quests,rewarded_ads_count").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle(),
+    supabase.from("daily_player_stats").select("completed_quests,rewarded_ads_count,correct_answers,qc_emitted,daily_score").eq("player_id", player.id).eq("day_utc", todayUtc()).maybeSingle(),
   ]);
   if (questError || !quest) throw new Error(questError?.message ?? "Genesis Run is unavailable");
   if (runError || dailyError) throw new Error(runError?.message ?? dailyError?.message ?? "Unable to load game state");
@@ -43,6 +43,11 @@ export async function getGameDashboard(player: GameQuestPlayer): Promise<GameDas
       experienceToNextLevel: experienceToNextLevel(player.experience),
       questStreak: player.questStreak,
       relics: player.relics,
+      questCoins: player.questCoins,
+      mindScore: player.mindScore,
+      dailyScore: player.dailyScore,
+      energy: player.energy,
+      comboBest: player.comboBest,
     },
     genesisRun: {
       id: activeRun?.id ?? null,
@@ -53,7 +58,7 @@ export async function getGameDashboard(player: GameQuestPlayer): Promise<GameDas
       rewardRelics: quest.reward_relics,
       checkpointIndex: progress.checkpointIndex,
     },
-    daily: { completedQuests: daily?.completed_quests ?? 0, rewardedAdsCount: daily?.rewarded_ads_count ?? 0 },
+    daily: { completedQuests: daily?.completed_quests ?? 0, rewardedAdsCount: daily?.rewarded_ads_count ?? 0, correctAnswers: daily?.correct_answers ?? 0, qcEmitted: daily?.qc_emitted ?? 0, dailyScore: daily?.daily_score ?? 0 },
   };
 }
 

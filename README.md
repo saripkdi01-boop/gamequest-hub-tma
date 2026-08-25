@@ -42,8 +42,18 @@ Genesis Run adalah vertical slice permainan yang aktif bagi pemain Telegram terv
 | `POST /api/game/genesis/choice` | Memvalidasi satu pilihan checkpoint dan menyelesaikan run bila checkpoint ketiga selesai. |
 | `GET /api/game/leaderboard` | Mengembalikan peringkat Season Alpha berdasarkan XP. |
 | `POST /api/game/ads/intent` | Membuat intent bonus iklan yang dibatasi daily cap dan cooldown. |
+| `POST /api/game/quiz/start` | Membuat sesi KNOW/CHAIN server-authoritative dan mengembalikan public question tanpa answer key. |
+| `POST /api/game/quiz/answer` | Memvalidasi jawaban, menghitung QC/XP/Mind Score/combo, lalu mencatat reward melalui RPC atomik. |
 
 Mode eksplorasi di-load secara lazy sehingga bundle Babylon hanya diunduh ketika pemain memilih Genesis Run; dashboard awal tetap lebih ringan untuk jaringan Telegram mobile.
+
+## QUEST//MIND MVP
+
+Dashboard sekarang memisahkan **Quest Coins (QC)**, XP, Mind Score, Daily Score, energy, streak, dan relics. Route `/mind` menyediakan mode KNOW dan CHAIN sebagai core quiz MVP. Sesi kuis dibuat server-side; client hanya menerima public question DTO, sedangkan correctness, speed multiplier, combo, fraud signal, QC, XP, dan Mind Score ditentukan di server. Mode BLUFF dan BOSS ditampilkan sebagai roadmap UI dan akan diaktifkan setelah rule economy serta daily limits selesai diuji.
+
+Migration `supabase/migrations/20260825_questmind_mvp.sql` menambahkan question pool, session/answer records, QC ledger, economy config, power-up catalog, projection player, serta RPC atomik untuk start session dan answer resolution. Pastikan migration ini telah diterapkan pada project Supabase sebelum membuka mode kuis di production.
+
+Suite default menjalankan unit/integration-safe tests. Pengujian credential production bersifat opt-in: `RUN_INTEGRATION_TESTS=true pnpm test`. Jangan memakai browser preview sebagai bukti reward; preview tidak memiliki Telegram identity tervalidasi dan tidak pernah membuat reward.
 
 ## Rewarded Ads Monetag
 

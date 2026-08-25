@@ -1,7 +1,43 @@
+export type QuizMode = "know" | "bluff" | "chain" | "boss" | "world";
+
+export type PublicQuestion = {
+  id: string;
+  category: string;
+  difficulty: "easy" | "medium" | "hard" | "boss";
+  question: string;
+  answers: Array<{ id: string; text: string }>;
+  timeLimitMs: number;
+  sequence: number;
+  sessionId: string;
+  expiresAt: string;
+};
+
 export type Dashboard = {
-  player: { id: string; firstName: string; username: string | null; level: number; experience: number; experienceToNextLevel: number; questStreak: number; relics: number };
-  genesisRun: { id: string | null; status: "available" | "active" | "completed" | "failed"; title: string; description: string; rewardXp: number; rewardRelics: number; checkpointIndex: number };
-  daily: { completedQuests: number; rewardedAdsCount: number };
+  player: {
+    id: string;
+    firstName: string;
+    username: string | null;
+    level: number;
+    experience: number;
+    experienceToNextLevel: number;
+    questStreak: number;
+    relics: number;
+    questCoins: number;
+    mindScore: number;
+    dailyScore: number;
+    energy: number;
+    comboBest: number;
+  };
+  genesisRun: {
+    id: string | null;
+    status: "available" | "active" | "completed" | "failed";
+    title: string;
+    description: string;
+    rewardXp: number;
+    rewardRelics: number;
+    checkpointIndex: number;
+  };
+  daily: { completedQuests: number; rewardedAdsCount: number; correctAnswers?: number; qcEmitted?: number };
 };
 
 export type Run = {
@@ -10,6 +46,30 @@ export type Run = {
   momentum: number;
   checkpoint: null | { index: number; title: string; narrative: string; choices: Array<{ id: string; title: string; description: string; momentum: number }> };
   result?: { success: boolean; xpAwarded: number; relicsAwarded: number; level: number; experience: number; relics: number };
+};
+
+export type QuizStart = {
+  session: { id: string; mode: QuizMode; expiresAt: string; questionCount: number; energy: number };
+  question: PublicQuestion;
+};
+
+export type QuizAnswer = {
+  sessionId: string;
+  mode: QuizMode;
+  duplicate: boolean;
+  result: {
+    correct: boolean;
+    qcAwarded: number;
+    xpAwarded: number;
+    mindScoreAwarded: number;
+    combo: number;
+    sequence: number;
+    explanation: string;
+    serverResponseMs: number | null;
+    fraudScore: number;
+    sessionCompleted: boolean;
+  };
+  question: PublicQuestion | null;
 };
 
 type GameResponse<T> = T & { error?: string };
@@ -35,6 +95,14 @@ export function startGenesisRun(initData?: string) {
 
 export function submitGenesisChoice(initData: string | undefined, runId: string, choiceId: string) {
   return request<{ run: Run }>("/api/game/genesis/choice", initData, { runId, choiceId });
+}
+
+export function startQuiz(initData: string | undefined, mode: QuizMode) {
+  return request<{ quiz: QuizStart }>("/api/game/quiz/start", initData, { mode });
+}
+
+export function submitQuizAnswer(initData: string | undefined, sessionId: string, answerId: string, clientResponseMs: number) {
+  return request<{ quiz: QuizAnswer }>("/api/game/quiz/answer", initData, { sessionId, answerId, clientResponseMs });
 }
 
 export async function getLeaderboard() {
